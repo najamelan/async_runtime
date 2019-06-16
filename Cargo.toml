@@ -1,0 +1,34 @@
+# Auto-generated from "Cargo.yml"
+[dependencies]
+failure = "^0.1"
+log = "^0.4"
+once_cell = "^0.1"
+
+[dependencies.futures-preview]
+default-features = false
+features = ["std", "compat", "nightly"]
+version = "^0.3.0-alpha.16"
+
+[dev-dependencies]
+pretty_assertions = "^0.6"
+
+[package]
+authors = ["Naja Melan <najamelan@autistici.org>"]
+edition = "2018"
+name = "async_runtime"
+version = "0.1.0"
+
+[package.metadata]
+[package.metadata."docs.rs"]
+all-features = true
+
+[profile]
+[profile.release]
+codegen-units = 1
+
+[target]
+[target."cfg(target_arch = \"wasm32\")"]
+[target."cfg(target_arch = \"wasm32\")".dependencies]
+[target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
+features = ["futures_0_3"]
+version = "0.3.22"

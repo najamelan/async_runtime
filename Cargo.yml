@@ -1,0 +1,43 @@
+package:
+
+  name   : async_runtime
+  version: 0.1.0
+  authors: [ Naja Melan <najamelan@autistici.org> ]
+  edition: '2018'
+
+  metadata:
+    docs.rs:
+      all-features: true
+
+
+
+dependencies:
+
+  failure         : ^0.1
+  futures-preview : { version: ^0.3.0-alpha.16, features: [ std, compat, nightly ], default-features: false }
+  log             : ^0.4
+  once_cell       : ^0.1
+
+
+target:
+
+  'cfg(target_arch = "wasm32")':
+
+    dependencies:
+
+      wasm-bindgen-futures: { version: 0.3.22, features: [ futures_0_3 ] }
+
+
+dev-dependencies:
+
+  # criterion         : { version: ^0.2           , features: [ real_blackbox ]                                 }
+  pretty_assertions : ^0.6
+  # flexi_logger      : ^0.11
+
+
+profile:
+
+  release:
+
+    codegen-units: 1
+    # debug        : true
