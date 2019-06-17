@@ -94,13 +94,13 @@ thread_local!
 /// ```
 ///
 //
-pub fn init( new_exec: Exec03Config ) -> Result< (), RtErr >
+pub fn init( config: Exec03Config ) -> Result< (), RtErr >
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
 		exec
 
-			.set( Exec03::new( new_exec ) )
+			.set( Exec03::new( config ) )
 			.map_err( |_| RtErrKind::DoubleExecutorInit.into() )
 	})
 }
@@ -168,4 +168,28 @@ pub fn run()
 		default_init();
 		exec.get().unwrap().run();
 	});
+}
+
+
+/// Get the configuration for the current default executor.
+/// Note that if this returns None and you call [spawn], a default executor
+/// will be initialized (with [default_init]), after which this will no longer return None.
+///
+/// If you are a library author you can use this to generate a clean error message
+/// if you have a hard requirement for a certain executor.
+//
+pub fn current_rt() -> Option<Exec03Config>
+{
+	EXEC.with( move |exec|
+	{
+		if exec.get().is_none()
+		{
+			None
+		}
+
+		else
+		{
+			Some( exec.get().unwrap().config().clone() )
+		}
+	})
 }

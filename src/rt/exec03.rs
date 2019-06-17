@@ -1,16 +1,13 @@
 use crate :: { import::*, Exec03Config, RtErr, RtErrKind };
 
 
-/// An executor that uses futures 0.3 executor under the hood.
-///
-/// TODO: threadpool impl. Currently puts everything on LocalPool.
+/// An executor that uses futures 0.3 LocalPool or juliex threadpool under the hood.
 //
 pub struct Exec03
 {
 	config : Exec03Config                      ,
 	local  : Option<RefCell< LocalPool03    >> ,
 	spawner: Option<RefCell< LocalSpawner03 >> ,
-	// _pool   : ThreadPool03            ,
 }
 
 
@@ -27,7 +24,6 @@ impl Default for Exec03
 
 impl Exec03
 {
-
 	/// Create a new Exec03 from a configuration
 	//
 	pub fn new( config: Exec03Config ) -> Self
@@ -50,6 +46,15 @@ impl Exec03
 			&Exec03Config::Pool{..} => Exec03{ config, local: None, spawner: None },
 		}
 	}
+
+
+	/// Getter for active executor configuration
+	//
+	pub fn config( &self ) -> &Exec03Config
+	{
+		&self.config
+	}
+
 
 
 	/// Run all spawned futures to completion.
