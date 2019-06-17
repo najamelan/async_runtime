@@ -106,7 +106,7 @@ pub fn init( new_exec: Exec03Config ) -> Result< (), RtErr >
 }
 
 
-// If no executor is set, set it to Exec03
+// If no executor is set, initialize with defaults
 //
 fn default_init()
 {
@@ -135,12 +135,25 @@ fn default_init()
 /// Spawn a future to be run on the LocalPool (current thread)
 /// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
 //
-pub fn spawn( fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
+pub fn spawn( fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
 		default_init();
 		exec.get().unwrap().spawn( fut )
+	})
+}
+
+
+/// Spawn a future to be run on the LocalPool (current thread)
+/// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
+//
+pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
+{
+	EXEC.with( move |exec| -> Result< (), RtErr >
+	{
+		default_init();
+		exec.get().unwrap().spawn_local( fut )
 	})
 }
 

@@ -4,13 +4,8 @@
 //
 pub enum Exec03Config
 {
-	Pool
-	{
-		global : bool,
-		// threads: usize,
-	},
-
-	Local
+	Pool  ,
+	Local ,
 }
 
 
@@ -18,6 +13,6 @@ impl Default for Exec03Config
 {
 	fn default() -> Self
 	{
-		Exec03Config::Local
+		Exec03Config::Pool
 	}
 }

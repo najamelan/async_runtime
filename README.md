@@ -2,13 +2,17 @@
 
 A lightweight runtime for global spawning of futures.
 
-The purpose of async_runtime is to make it convenient to spawn an run futures. It allows library authors to call `rt::spawn( future );` rather than having to take a `T: Executor`.
+The purpose of async_runtime is to make it convenient to spawn and run futures. It allows library authors to call `rt::spawn( future );` rather than having to take a `T: Executor`, yet let client code decide what kind of executor is used. Currently the choice is between futures 0.3 `LocalPool` and the [juliex](https://github.com/withoutboats/juliex) threadpool. Other implementations might be added later.
 
-As opposed to the [runtime](https://github.com/rustasync/runtime) crate, this does not impose network dependencies. It's purely about spawning and running futures. Other crates providing networking can be built on top of it.
+Differences with the [runtime](https://github.com/rustasync/runtime) crate:
 
-I have chosen to move away from the model of taking an executor/runtime as a trait object. While it is true that it is more flexible, it incurs overhead because all futures have to be boxed (trait object methods cannot be generic). In practice, I have not really been able to see the need for custom executors. In principle futures 0.3 executors (or juliex) and wasm-bindgen-futures will run about everything. Tokio Streams/Sinks and futures can be converted with the compatibility layer, so I haven't found the need for a tokio runtime/executor. I have thus decided to choose performance above customizebility here. PR can always be made for environments that need other executors. The `runtime` does provide the opposite design choices, allowing users to find a solution either way.
+  - no need to box futures to spawn them, but you can spawn boxed futures just the same
+  - no dependency bloat from network related crates if you just want to spawn futures
+  - client code can decide that the executor for the thread is a LocalPool (can be a serious performance benefit sometimes)
+  - no macros (for async main, tests, ...) for the moment, maybe later
+  - the executor is not a trait object, so you can't just implement a different one without patching this crate. I have not yet found the use for this, and tokio futures and streams run just fine with the compatibility layer from futures 0.3.
 
-[runtime](https://github.com/rustasync/runtime) currently has other features that we don't include (yet), like attributes for an async main, tests, ...
+Both crates work on wasm.
 
-`async_runtime` lets you spawn futures on both a local executor or a threadpool. It works on wasm as well as std platforms. I have currently not looked into no_std.
+When not on wasm, the default executor is the juliex threadpool. This is because the executor is set per thread and when tasks run on a threadpool thread and they spawn, they will automatically spawn on the threadpool. This alleviates the need for initialization code on the threadpool threads. This means that you have to call `rt::init` if you want the `LocalPool`.
 

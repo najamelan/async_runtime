@@ -17,6 +17,7 @@ dependencies:
   futures-preview : { version: ^0.3.0-alpha.16, features: [ std, compat, nightly ], default-features: false }
   log             : ^0.4
   once_cell       : ^0.1
+  juliex          : 0.3.0-alpha.6
 
 
 target:

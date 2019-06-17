@@ -41,14 +41,13 @@ impl Exec03
 
 				Exec03
 				{
-					config : config,
-					local  : Some( RefCell::new( local ) ),
-					spawner: Some( RefCell::new( spawner ) ),
-					// _pool   : ThreadPool03::new().expect( "Create futures::ThreadPool with default configurtion" ),
+					config                                   ,
+					local  : Some( RefCell::new( local   ) ) ,
+					spawner: Some( RefCell::new( spawner ) ) ,
 				}
 			}
 
-			&Exec03Config::Pool{..} => unimplemented!(),
+			&Exec03Config::Pool{..} => Exec03{ config, local: None, spawner: None },
 		}
 	}
 
@@ -60,14 +59,14 @@ impl Exec03
 		match self.config
 		{
 			Exec03Config::Local    => self.local.as_ref().unwrap().borrow_mut().run(),
-			Exec03Config::Pool{..} => unimplemented!(),
+			Exec03Config::Pool{..} => {}, // nothing to be done as juliex polls immediately
 		}
 	}
 
 
 	/// Spawn a future to be run on the LocalPool (current thread)
 	//
-	pub fn spawn( &self, fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
+	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{
 		match self.config
 		{
@@ -75,10 +74,28 @@ impl Exec03
 
 				self.spawner.as_ref().unwrap().borrow_mut().spawn_local( fut )
 
-			   	.map_err( |_| RtErrKind::Spawn{ context: "Exec03 spawn".into() }.into() ),
+			   	.map_err( |_| RtErrKind::Spawn{ context: "Futures 0.3 LocalPool spawn".into() }.into() ),
 
 
-			Exec03Config::Pool{..} => unimplemented!(),
+			Exec03Config::Pool{..} => Ok( juliex::spawn( fut ) ),
+		}
+	}
+
+
+	/// Spawn a future to be run on the LocalPool (current thread)
+	//
+	pub fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
+	{
+		match self.config
+		{
+			Exec03Config::Local =>
+
+				self.spawner.as_ref().unwrap().borrow_mut().spawn_local( fut )
+
+			   	.map_err( |_| RtErrKind::Spawn{ context: "Futures 0.3 LocalPool spawn".into() }.into() ),
+
+
+			Exec03Config::Pool{..} => Err( RtErrKind::Spawn{ context: "Exec03 spawn_local when initialized executor is the threadpool. Use `spawn` to spawn on the threadpool or initialize the default executor for the thread to be the thread local executor".into() }.into() ),
 		}
 	}
 }

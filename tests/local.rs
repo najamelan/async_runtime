@@ -4,7 +4,6 @@
 //
 // - ✔ basic spawning using default config
 // - ✔ spawn !Send task (RefCell is !Send)
-// - ✔ basic spawning specifying the config
 // - ✔ spawn a pinned boxed future
 // - ✔ spawn a pinned boxed_local future
 // - ✔ spawn several tasks
@@ -29,40 +28,18 @@ fn test_basic_spawn()
 	let number  = Rc::new( RefCell::new( 0 ) );
 	let num2    = number.clone();
 
+	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+
 	let task = async move
 	{
 		*num2.borrow_mut() = 2;
 	};
 
-	rt::spawn( task ).expect( "Spawn task" );
+	rt::spawn_local( task ).expect( "Spawn task" );
 	rt::run();
 
 	assert_eq!( *number.borrow(), 2 );
 }
-
-
-
-
-#[test]
-//
-fn test_spawn_config()
-{
-	let number  = Rc::new( RefCell::new( 0 ) );
-	let num2    = number.clone();
-
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
-
-	let task = async move
-	{
-		*num2.borrow_mut() = 3;
-	};
-
-	rt::spawn( task ).expect( "Spawn task" );
-	rt::run();
-
-	assert_eq!( *number.borrow(), 3 );
-}
-
 
 
 
@@ -81,7 +58,7 @@ fn test_spawn_boxedlocal()
 
 	}.boxed_local();
 
-	rt::spawn( task ).expect( "Spawn task" );
+	rt::spawn_local( task ).expect( "Spawn task" );
 	rt::run();
 
 	assert_eq!( *number.borrow(), 4 );
@@ -103,8 +80,11 @@ fn test_spawn_boxed()
 	{
 		*num2.lock().expect( "lock mutex" ) = 5;
 
-	}.boxed_local();
+	}.boxed();
 
+	// Here we don't use `spawn_local` because this future is actually Send, so we don't need to,
+	// yet it will still be spawned on the LocalPool and not on a threadpool.
+	//
 	rt::spawn( task ).expect( "Spawn task" );
 	rt::run();
 
@@ -122,6 +102,7 @@ fn test_several()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
+	rt::init( Exec03Config::Local ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -133,8 +114,13 @@ fn test_several()
 		tx.send( 2 ).expect( "send on channel" );
 	};
 
-	rt::spawn( task  ).expect( "Spawn task"  );
+	rt::spawn_local( task  ).expect( "Spawn task"  );
+
+	// Here we don't use `spawn_local` because this future is actually Send, so we don't need to,
+	// yet it will still be spawned on the LocalPool and not on a threadpool.
+	//
 	rt::spawn( task2 ).expect( "Spawn task2" );
+
 	rt::run();
 
 	assert_eq!( *number.borrow(), 6 );
@@ -150,6 +136,7 @@ fn test_within()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
+	rt::init( Exec03Config::Local ).expect( "no double executor init" );
 
 	let task2 = async move
 	{
@@ -162,10 +149,10 @@ fn test_within()
 		};
 
 
-		rt::spawn( task  ).expect( "Spawn task"  );
+		rt::spawn_local( task  ).expect( "Spawn task"  );
 	};
 
-	rt::spawn( task2 ).expect( "Spawn task2" );
+	rt::spawn_local( task2 ).expect( "Spawn task2" );
 	rt::run();
 
 	assert_eq!( *number.borrow(), 8 );
@@ -183,6 +170,7 @@ fn test_threads()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
+	rt::init( Exec03Config::Local ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -191,18 +179,23 @@ fn test_threads()
 
 	thread::spawn( move ||
 	{
+		rt::init( Exec03Config::Local ).expect( "no double executor init" );
+
 		let task2 = async move
 		{
 			tx.send( 4 ).expect( "send on channel" );
 		};
 
+		// Here we don't use `spawn_local` because this future is actually Send, so we don't need to,
+		// yet it will still be spawned on the LocalPool and not on a threadpool.
+		//
 		rt::spawn( task2 ).expect( "Spawn thread 2 program" );
 		rt::run();
 
 	}).join().expect( "join thread" );
 
 
-	rt::spawn( task  ).expect( "Spawn task"  );
+	rt::spawn_local( task  ).expect( "Spawn task"  );
 	rt::run();
 
 	assert_eq!( *number.borrow(), 10 );
