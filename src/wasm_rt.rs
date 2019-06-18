@@ -62,19 +62,22 @@
 //! }
 //! ```
 //!
-use crate :: { import::* };
+use crate :: { import::*, RtErr, RtErrKind };
+
+
+mod wasm_exec;
+mod wasm_exec_config;
+
+pub use
+{
+	wasm_exec        :: * ,
+	wasm_exec_config :: * ,
+};
 
 
 thread_local!
 (
-	#[ cfg(not( target_arch = "wasm32" )) ]
-	//
-	static EXEC: OnceCell< super::exec03::Exec03 > = OnceCell::INIT;
-
-
-	#[ cfg( target_arch = "wasm32" ) ]
-	//
-	static EXEC: OnceCell< super::wasm::WasmExec > = OnceCell::INIT;
+	static EXEC: OnceCell< WasmExec > = OnceCell::INIT;
 );
 
 
@@ -90,14 +93,14 @@ thread_local!
 /// ```
 ///
 //
-pub fn init( new_exec: Box< dyn Executor > ) -> Result< (), ThesRtErr >
+pub fn init( config: WasmExecConfig ) -> Result< (), RtErr >
 {
-	EXEC.with( move |exec| -> Result< (), ThesRtErr >
+	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
 		exec
 
-			.set( new_exec )
-			.map_err( |_| ThesRtErrKind::DoubleExecutorInit.into() )
+			.set( WasmExec::new( config ) )
+			.map_err( |_| RtErrKind::DoubleExecutorInit.into() )
 	})
 }
 
@@ -110,23 +113,18 @@ fn default_init()
 	{
 		if exec.get().is_none()
 		{
-			#[ cfg(not( target_arch = "wasm32" )) ]
-			//
-			init( Box::new( super::exec03::Exec03::default() ) ).unwrap();
-
-			#[ cfg( target_arch = "wasm32" ) ]
-			//
-			init( Box::new( super::wasm::WasmRT::default() ) ).unwrap();
+			init( WasmExecConfig::default() ).unwrap();
 		}
 	});
 }
 
 
-/// Spawn a pinned future to be run on the LocalPool (current thread)
+/// Spawn a future to be run on the LocalPool (current thread)
+/// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
 //
-pub fn spawn_pinned( fut: Pin<Box< dyn Future< Output = () > + 'static >> ) -> Result< (), ThesRtErr >
+pub fn spawn( fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 {
-	EXEC.with( move |exec| -> Result< (), ThesRtErr >
+	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
 		default_init();
 		exec.get().unwrap().spawn( fut )
@@ -137,20 +135,13 @@ pub fn spawn_pinned( fut: Pin<Box< dyn Future< Output = () > + 'static >> ) -> R
 /// Spawn a future to be run on the LocalPool (current thread)
 /// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
 //
-pub fn spawn( fut: impl Future< Output = () > + 'static ) -> Result< (), ThesRtErr >
+pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
 {
-	spawn_pinned( Box::pin( fut ) )
-}
-
-
-/// Run all spawned futures to completion.
-/// This function is not re-entrant. Do not call it from within your async code.
-//
-pub fn run()
-{
-	EXEC.with( move |exec|
+	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
 		default_init();
-		exec.get().unwrap().run();
-	});
+		exec.get().unwrap().spawn_local( fut )
+	})
 }
+
+

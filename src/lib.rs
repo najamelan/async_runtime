@@ -1,11 +1,10 @@
 #![ feature( async_await ) ]
 
-#[ cfg(not( target_arch = "wasm32" )) ] pub mod rt    ;
-#[ cfg(not( target_arch = "wasm32" )) ] pub use { rt::* };
+#[ cfg(not( target_arch = "wasm32" )) ] pub mod rt             ;
+#[ cfg(not( target_arch = "wasm32" )) ] pub use { rt::* }      ;
 
-#[ cfg(     target_arch = "wasm32" )  ] pub mod wasm_rt  ;
-#[ cfg(     target_arch = "wasm32" )  ] pub mod wasm_exec;
-#[ cfg(     target_arch = "wasm32" )  ] pub use { wasm_exec::* };
+#[ cfg(     target_arch = "wasm32" )  ] pub mod wasm_rt        ;
+#[ cfg(     target_arch = "wasm32" )  ] pub use { wasm_rt::* } ;
 
 
 mod error;
