@@ -2,7 +2,7 @@
 
 // Tested:
 //
-// - ✔ basic spawning using default config
+// - ✔ basic spawning
 // - ✔ spawn !Send task (RefCell is !Send)
 // - ✔ spawn a pinned boxed future
 // - ✔ spawn a pinned boxed_local future
@@ -23,7 +23,7 @@ use
 
 #[test]
 //
-fn test_basic_spawn()
+fn basic_spawn()
 {
 	let number  = Rc::new( RefCell::new( 0 ) );
 	let num2    = number.clone();
@@ -45,7 +45,7 @@ fn test_basic_spawn()
 
 #[test]
 //
-fn test_spawn_boxedlocal()
+fn spawn_boxedlocal()
 {
 	let number  = Rc::new( RefCell::new( 0 ) );
 	let num2    = number.clone();
@@ -69,7 +69,7 @@ fn test_spawn_boxedlocal()
 
 #[test]
 //
-fn test_spawn_boxed()
+fn spawn_boxed()
 {
 	let number  = Arc::new( Mutex::new( 0 ) );
 	let num2    = number.clone();
@@ -96,7 +96,7 @@ fn test_spawn_boxed()
 
 #[test]
 //
-fn test_several()
+fn several()
 {
 	let number   = Rc::new( RefCell::new( 0 ) );
 	let num2     = number.clone();
@@ -130,7 +130,7 @@ fn test_several()
 
 #[test]
 //
-fn test_within()
+fn within()
 {
 	let number   = Rc::new( RefCell::new( 0 ) );
 	let num2     = number.clone();
@@ -164,7 +164,7 @@ fn test_within()
 //
 #[test]
 //
-fn test_threads()
+fn threads()
 {
 	let number   = Rc::new( RefCell::new( 0 ) );
 	let num2     = number.clone();

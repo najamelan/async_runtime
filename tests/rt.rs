@@ -2,9 +2,10 @@
 
 // Tested:
 //
-// - ✔ localpool
-// - ✔ threadpool
-// - ✔ after spawning it should be a threadpool
+// - ✔ current_rt for localpool
+// - ✔ current_rt for threadpool
+// - ✔ current_rt for after spawning it should be a threadpool
+// - basic methods like spawn and init are being tested in the other integration test files
 
 
 use

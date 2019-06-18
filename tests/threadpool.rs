@@ -7,7 +7,7 @@
 // - ✔ spawn a pinned boxed future
 // - ✔ spawn several tasks
 // - ✔ spawn from within another task
-// - verify that it's actually running on a threadpool and not on a LocalPool
+// - ✔ verify that it's actually running on a threadpool and not on a LocalPool
 
 
 use
@@ -22,7 +22,7 @@ use
 
 #[test]
 //
-fn test_basic_spawn()
+fn basic_spawn()
 {
 	let number   = Arc::new( Mutex::new( 0 ) );
 	let num2     = number.clone();
@@ -48,7 +48,7 @@ fn test_basic_spawn()
 
 #[test]
 //
-fn test_spawn_config()
+fn spawn_config()
 {
 	let number   = Arc::new( Mutex::new( 0 ) );
 	let num2     = number.clone();
@@ -75,7 +75,7 @@ fn test_spawn_config()
 
 #[test]
 //
-fn test_spawn_boxed()
+fn spawn_boxed()
 {
 	let number   = Arc::new( Mutex::new( 0 ) );
 	let num2     = number.clone();
@@ -102,7 +102,7 @@ fn test_spawn_boxed()
 
 #[test]
 //
-fn test_several()
+fn several()
 {
 	let number     = Arc::new( Mutex::new( 0 ) );
 	let num2       = number.clone();
@@ -134,7 +134,7 @@ fn test_several()
 
 #[test]
 //
-fn test_within()
+fn within()
 {
 	let number     = Arc::new( Mutex::new( 0 ) );
 	let num2       = number.clone();
@@ -169,7 +169,7 @@ fn test_within()
 
 #[test]
 //
-fn test_not_running_local()
+fn not_running_local()
 {
 	let (tx, rx) = oneshot::channel();
 
