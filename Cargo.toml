@@ -33,3 +33,6 @@ codegen-units = 1
 [target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
 features = ["futures_0_3"]
 version = "0.3.22"
+
+[target."cfg(target_arch = \"wasm32\")".dev-dependencies]
+wasm-bindgen-test = "^0.2"

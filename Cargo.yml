@@ -19,6 +19,12 @@ dependencies:
   once_cell       : ^0.1
   juliex          : 0.3.0-alpha.6
 
+dev-dependencies:
+
+  # criterion         : { version: ^0.2           , features: [ real_blackbox ]                                 }
+  pretty_assertions : ^0.6
+  # flexi_logger      : ^0.11
+
 
 target:
 
@@ -28,12 +34,9 @@ target:
 
       wasm-bindgen-futures: { version: 0.3.22, features: [ futures_0_3 ] }
 
+    dev-dependencies:
 
-dev-dependencies:
-
-  # criterion         : { version: ^0.2           , features: [ real_blackbox ]                                 }
-  pretty_assertions : ^0.6
-  # flexi_logger      : ^0.11
+      wasm-bindgen-test: ^0.2
 
 
 profile:

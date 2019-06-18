@@ -145,3 +145,28 @@ pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), R
 }
 
 
+
+/// Get the configuration for the current default executor.
+/// Note that if this returns None and you call [spawn], a default executor
+/// will be initialized (with [default_init]), after which this will no longer return None.
+///
+/// If you are a library author you can use this to generate a clean error message
+/// if you have a hard requirement for a certain executor.
+//
+pub fn current_rt() -> Option<WasmExecConfig>
+{
+	EXEC.with( move |exec|
+	{
+		if exec.get().is_none()
+		{
+			None
+		}
+
+		else
+		{
+			Some( exec.get().unwrap().config().clone() )
+		}
+	})
+}
+
+

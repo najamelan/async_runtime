@@ -1,3 +1,4 @@
+#![ cfg(not( target_arch = "wasm32" )) ]
 #![ feature( async_await ) ]
 
 // Tested:
@@ -9,6 +10,7 @@
 // - ✔ spawn several tasks
 // - ✔ spawn from within another task
 // - ✔ localpools on several threads
+//
 
 
 use

@@ -4,7 +4,7 @@
 #[ cfg(not( target_arch = "wasm32" )) ] pub use { rt::* }      ;
 
 #[ cfg(     target_arch = "wasm32" )  ] pub mod wasm_rt        ;
-#[ cfg(     target_arch = "wasm32" )  ] pub use { wasm_rt::* } ;
+#[ cfg(     target_arch = "wasm32" )  ] pub use { wasm_rt::*, wasm_rt as rt } ;
 
 
 mod error;
