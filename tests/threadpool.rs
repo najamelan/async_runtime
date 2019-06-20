@@ -55,7 +55,7 @@ fn spawn_config()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( Exec03Config::Pool ).expect( "no double executor init" );
+	rt::init( RtConfig::Pool ).expect( "no double executor init" );
 
 	let task = async move
 	{

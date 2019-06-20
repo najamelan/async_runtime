@@ -23,6 +23,8 @@ use
 
 
 
+// RefCell being not Send, this guarantees that it's running on the local thread
+//
 #[test]
 //
 fn basic_spawn()
@@ -30,7 +32,7 @@ fn basic_spawn()
 	let number  = Rc::new( RefCell::new( 0 ) );
 	let num2    = number.clone();
 
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+	rt::init( RtConfig::Local ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -49,21 +51,26 @@ fn basic_spawn()
 //
 fn spawn_boxedlocal()
 {
-	let number  = Rc::new( RefCell::new( 0 ) );
-	let num2    = number.clone();
+	let (tx, rx) = oneshot::channel();
 
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+	rt::init( RtConfig::Local ).expect( "no double executor init" );
 
-	let task = async move
+
+	rt::spawn_local( async move
 	{
-		*num2.borrow_mut() = 4;
+		tx.send( 4 ).expect( "send on channel" );
 
-	}.boxed_local();
+	}.boxed_local() ).expect( "Spawn task" );
 
-	rt::spawn_local( task ).expect( "Spawn task" );
+
+	rt::spawn( async move
+	{
+		assert_eq!( 4, rx.await.expect( "wait for channel" ) );
+
+	}).expect( "spawn assert" );
+
+
 	rt::run();
-
-	assert_eq!( *number.borrow(), 4 );
 }
 
 
@@ -76,7 +83,7 @@ fn spawn_boxed()
 	let number  = Arc::new( Mutex::new( 0 ) );
 	let num2    = number.clone();
 
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+	rt::init( RtConfig::Local ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -104,7 +111,7 @@ fn several()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+	rt::init( RtConfig::Local ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -138,7 +145,7 @@ fn within()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+	rt::init( RtConfig::Local ).expect( "no double executor init" );
 
 	let task2 = async move
 	{
@@ -172,7 +179,7 @@ fn threads()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+	rt::init( RtConfig::Local ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -181,7 +188,7 @@ fn threads()
 
 	thread::spawn( move ||
 	{
-		rt::init( Exec03Config::Local ).expect( "no double executor init" );
+		rt::init( RtConfig::Local ).expect( "no double executor init" );
 
 		let task2 = async move
 		{

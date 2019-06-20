@@ -22,9 +22,9 @@ fn localpool()
 {
 	assert_eq!( None, rt::current_rt() );
 
-	rt::init( Exec03Config::Local ).expect( "no double executor init" );
+	rt::init( RtConfig::Local ).expect( "no double executor init" );
 
-	assert_eq!( Some( Exec03Config::Local ), rt::current_rt() );
+	assert_eq!( Some( RtConfig::Local ), rt::current_rt() );
 }
 
 
@@ -35,9 +35,9 @@ fn thread_pool()
 {
 	assert_eq!( None, rt::current_rt() );
 
-	rt::init( Exec03Config::Pool ).expect( "no double executor init" );
+	rt::init( RtConfig::Pool ).expect( "no double executor init" );
 
-	assert_eq!( Some( Exec03Config::Pool ), rt::current_rt() );
+	assert_eq!( Some( RtConfig::Pool ), rt::current_rt() );
 }
 
 
@@ -50,5 +50,5 @@ fn spawn()
 
 	rt::spawn( async {} ).expect( "spawn" );
 
-	assert_eq!( Some( Exec03Config::Pool ), rt::current_rt() );
+	assert_eq!( Some( RtConfig::Pool ), rt::current_rt() );
 }

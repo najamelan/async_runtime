@@ -32,7 +32,7 @@ fn basic_spawn()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( WasmExecConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
 
 
 	let task = async move
@@ -60,7 +60,7 @@ fn spawn_not_send()
 	let num2    = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( WasmExecConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
 
 
 	let task = async move
@@ -81,13 +81,14 @@ fn spawn_not_send()
 }
 
 
+
 #[wasm_bindgen_test]
 //
 fn spawn_boxed()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( WasmExecConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
 
 
 	let task = async move
@@ -107,13 +108,14 @@ fn spawn_boxed()
 }
 
 
+
 #[wasm_bindgen_test]
 //
 fn spawn_boxed_local()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( WasmExecConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
 
 
 	let task = async move
@@ -141,7 +143,7 @@ fn several()
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( WasmExecConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
 
 
 	let task = async move
@@ -175,7 +177,7 @@ fn within()
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( WasmExecConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
 
 
 	let task = async move

@@ -1,79 +1,20 @@
-//! This is a convenience module for setting a default runtime and allowing code throughout to use spawn.
+//! This is a convenience module for setting a default runtime and allowing code throughout to use [spawn].
 //! It means you don't have to pass an executor around everywhere.
 //!
-//! Without this you need to do something like:
-//! ```rust, ignore
-//! fn main()
-//! {
-//!    let mut pool  = LocalPool::new();
-//!    let mut exec  = pool.spawner();
-//!    let mut exec2 = exec.clone();
+//! ### Usage
 //!
-//!    let program = async move
-//!    {
-//!       let a = MyActor;
-//!
-//!       // Create mailbox
-//!       //
-//!       let mb  : Inbox<MyActor> = Inbox::new();
-//!       let mut addr  = Addr::new( mb.sender() );
-//!
-//!       // Manually spawn the future.
-//!       //
-//!       let move_mb = async move { mb.start_fut( a ).await; };
-//!       exec2.spawn_local( move_mb ).expect( "Spawning mailbox failed" );
-//!
-//!       let result  = addr.call( Ping( "ping".into() ) ).await;
-//!
-//!       assert_eq!( "pong".to_string(), result );
-//!       dbg!( result );
-//!    };
-//!
-//!    exec.spawn_local( program ).expect( "Spawn program" );
-//!
-//!    pool.run();
-//! }
 //! ```
+//! use async_runtime::*;
 //!
-//! Now you get:
-//! ```rust, ignore
-//! fn main()
-//! {
-//!    let program = async move
-//!    {
-//!       let a = MyActor;
 //!
-//!       // Create mailbox
-//!       //
-//!       let     mb  : Inbox<MyActor> = Inbox::new();
-//!       let mut addr                 = Addr::new( mb.sender() );
-//!
-//!       mb.start( a ).expect( "Failed to start mailbox" );
-//!
-//!       let result  = addr.call( Ping( "ping".into() ) ).await;
-//!
-//!       assert_eq!( "pong".to_string(), result );
-//!       dbg!( result );
-//!    };
-//!
-//!    rt::spawn( program ).expect( "Spawn program" );
-//!
-//!    rt::run();
-//! }
 //! ```
 //!
 
-mod exec03;
-mod exec03_config;
-
-pub use
-{
-	exec03        :: * ,
-	exec03_config :: * ,
-};
+pub(crate) mod exec03;
+pub use exec03::*;
 
 
-use crate :: { import::*, RtErr, RtErrKind };
+use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 
 
 thread_local!
@@ -83,18 +24,31 @@ thread_local!
 
 
 
-/// Set the executor to use by default. Run this before calls to run or spawn.
-/// This is optional and if you don't set this, the Exec03 executor will be used.
+/// Set the executor to use by default. Run this before calls to spawn. If you are a library
+/// author, don't call this unless you create the thread, otherwise it's up to client code to
+/// decide which executor to use. Just call [spawn].
+///
+/// This is optional and if you don't set this, the juliex thread pool executor will be set to
+/// be the executor for this thread. If you want a LocalPool (runs on the current thread), you must call this:
 ///
 /// ### Example
 ///
-/// Use the tokio runtime in order to get support for epoll and the like.
-/// ```rust, ignore
-/// rt::init( box TokioRT::default() ).expect( "Only set the executor once" );
+/// ```
+/// use async_runtime::*;
+///
+/// rt::init( RtConfig::Local ).expect( "Set default executor" );
+///
+/// // ...spawn some tasks...
+///
+/// // Important, otherwise the local executor does not poll. For the threadpool this is not necessary,
+/// // as futures will be polled immediately after spawning them.
+/// //
+/// rt::run();
+///
 /// ```
 ///
 //
-pub fn init( config: Exec03Config ) -> Result< (), RtErr >
+pub fn init( config: RtConfig ) -> Result< (), RtErr >
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
@@ -106,7 +60,7 @@ pub fn init( config: Exec03Config ) -> Result< (), RtErr >
 }
 
 
-// If no executor is set, initialize with defaults
+/// If no executor is set, initialize with defaults
 //
 fn default_init()
 {
@@ -114,28 +68,27 @@ fn default_init()
 	{
 		if exec.get().is_none()
 		{
-			init( Exec03Config::default() ).unwrap();
+			init( RtConfig::default() ).unwrap();
 		}
 	});
 }
 
 
-/// Spawn a pinned future to be run on the LocalPool (current thread)
+/// Spawn a future to be run on the default executor (set with [init] or juliex threadpool).
+///
+/// ```
+/// # #![ feature( async_await) ]
+/// #
+/// use async_runtime::*;
+///
+/// rt::spawn( async
+/// {
+///    println!( "async execution" );
+///
+/// });
+/// ```
 //
-// pub fn spawn_pinned( fut: Pin<Box< dyn Future< Output = () > + 'static >> ) -> Result< (), RtErr >
-// {
-// 	EXEC.with( move |exec| -> Result< (), RtErr >
-// 	{
-// 		default_init();
-// 		exec.get().unwrap().spawn( fut )
-// 	})
-// }
-
-
-/// Spawn a future to be run on the LocalPool (current thread)
-/// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
-//
-pub fn spawn( fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), RtErr >
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
@@ -145,10 +98,14 @@ pub fn spawn( fut: impl Future< Output = () > + 'static + Send ) -> Result< (), 
 }
 
 
-/// Spawn a future to be run on the LocalPool (current thread)
-/// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
+/// Spawn a future to be run on the LocalPool (current thread). This will return an error
+/// if the current executor is the threadpool.
+///
+/// Does exactly the same as [spawn], but does not require the future to be [Send]. If your
+/// future is [Send], you can just use [spawn]. It will always spawn on the executor set with
+/// init.
 //
-pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
+pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtErr >
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
@@ -159,7 +116,8 @@ pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), R
 
 
 /// Run all spawned futures to completion.
-/// This function is not re-entrant. Do not call it from within your async code.
+/// Do not call it from within a spawned task.
+/// TODO: test what happens if you do and document.
 //
 pub fn run()
 {
@@ -178,7 +136,7 @@ pub fn run()
 /// If you are a library author you can use this to generate a clean error message
 /// if you have a hard requirement for a certain executor.
 //
-pub fn current_rt() -> Option<Exec03Config>
+pub fn current_rt() -> Option<RtConfig>
 {
 	EXEC.with( move |exec|
 	{
@@ -193,3 +151,14 @@ pub fn current_rt() -> Option<Exec03Config>
 		}
 	})
 }
+
+
+
+/// Block the current thread until the given future resolves and return the Output.
+//
+pub fn block_on< F: Future >( fut: F ) -> F::Output
+{
+	futures::executor::block_on( fut )
+}
+
+

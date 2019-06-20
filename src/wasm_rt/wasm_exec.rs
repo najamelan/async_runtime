@@ -1,7 +1,7 @@
 use
 {
-	crate                :: { import::*, RtErr, WasmExecConfig } ,
-	wasm_bindgen_futures :: { futures_0_3::spawn_local                    } ,
+	crate                :: { import::*, RtErr, RtConfig } ,
+	wasm_bindgen_futures :: { futures_0_3::spawn_local   } ,
 };
 
 
@@ -9,7 +9,7 @@ use
 //
 pub struct WasmExec
 {
-	_config: WasmExecConfig
+	_config: RtConfig
 }
 
 
@@ -18,7 +18,7 @@ impl Default for WasmExec
 {
 	fn default() -> Self
 	{
-		WasmExec::new( WasmExecConfig::default() )
+		WasmExec::new( RtConfig::default() )
 	}
 }
 
@@ -28,19 +28,19 @@ impl WasmExec
 {
 	/// Create a new WasmExec from a configuration
 	//
-	pub fn new( config: WasmExecConfig ) -> Self
+	pub fn new( config: RtConfig ) -> Self
 	{
 		match &config
 		{
-			&WasmExecConfig::Local => WasmExec{ _config: config },
-			&WasmExecConfig::Pool  => panic!( "Wasm does not have threads atm. Please initiate with a localpool executor" ),
+			&RtConfig::Local => WasmExec{ _config: config },
+			&RtConfig::Pool  => panic!( "Wasm does not have threads atm. Please initiate with a localpool executor" ),
 		}
 	}
 
 
 	/// Getter for active executor configuration
 	//
-	pub fn config( &self ) -> &WasmExecConfig
+	pub fn config( &self ) -> &RtConfig
 	{
 		&self._config
 	}

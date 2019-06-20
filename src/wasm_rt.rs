@@ -62,17 +62,11 @@
 //! }
 //! ```
 //!
-use crate :: { import::*, RtErr, RtErrKind };
+use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 
 
-mod wasm_exec;
-mod wasm_exec_config;
-
-pub use
-{
-	wasm_exec        :: * ,
-	wasm_exec_config :: * ,
-};
+pub(crate) mod wasm_exec;
+pub use wasm_exec::*;
 
 
 thread_local!
@@ -93,7 +87,7 @@ thread_local!
 /// ```
 ///
 //
-pub fn init( config: WasmExecConfig ) -> Result< (), RtErr >
+pub fn init( config: RtConfig ) -> Result< (), RtErr >
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
@@ -113,7 +107,7 @@ fn default_init()
 	{
 		if exec.get().is_none()
 		{
-			init( WasmExecConfig::default() ).unwrap();
+			init( RtConfig::default() ).unwrap();
 		}
 	});
 }
@@ -153,7 +147,7 @@ pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), R
 /// If you are a library author you can use this to generate a clean error message
 /// if you have a hard requirement for a certain executor.
 //
-pub fn current_rt() -> Option<WasmExecConfig>
+pub fn current_rt() -> Option<RtConfig>
 {
 	EXEC.with( move |exec|
 	{

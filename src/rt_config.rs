@@ -2,17 +2,17 @@
 //
 #[ derive( Debug, Clone, Hash, PartialEq, Eq ) ]
 //
-pub enum WasmExecConfig
+pub enum RtConfig
 {
 	Pool  ,
 	Local ,
 }
 
 
-impl Default for WasmExecConfig
+impl Default for RtConfig
 {
 	fn default() -> Self
 	{
-		WasmExecConfig::Pool
+		RtConfig::Pool
 	}
 }

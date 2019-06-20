@@ -1,23 +1,29 @@
 use crate::{ import::* };
 
 
-/// The main error type for thespis_impl. Use [`RtErr::kind()`] to know which kind of
-/// error happened. RtErrKind implements Eq, so you can the following if all you want to
-/// know is the kind of error. You can obviously also match the data contained in the RtErrKind
-/// if you want, but you don't have to:
+/// The error type for errors happening in async_runtime.
+///
+/// Use [`RtErr::kind()`] to know which kind of error happened. [RtErrKind] implements [Eq],
+/// so you can the following if all you want to know is the kind of error:
 ///
 /// ```ignore
-/// match return_a_result()
+/// use async_runtime::*;
+///
+/// rt::init( RtConfig::Local ).expect( "Set default executor" );
+///
+/// match rt::init( RtConfig::Pool )
 /// {
 ///    Err(e) =>
 ///    {
 ///       match e.kind()
 ///       {
-///          RtErrKind::MailboxFull{..} => println!( "{}", e ),
+///          RtErrKind::DoubleExecutorInit => println!( "{}", e ),
 ///          _ => {},
 ///       }
 ///
-///       if let RtErrKind::MailboxFull{..} = e.kind()
+///       // This also works:
+///       //
+///       if let RtErrKind::DoubleExecutorInit = e.kind()
 ///       {
 ///          println!( "{}", e );
 ///       }
@@ -42,21 +48,27 @@ pub struct RtErr
 //
 pub enum RtErrKind
 {
-	#[ fail( display = "A connection error happened: {}", what ) ]
+	/// You should not call [rt::init](crate::rt::init) twice on the same thread. In general if you are a library
+	/// author, you should not call it unless you started the thread. Otherwise just call [rt::spawn](crate::rt::spawn)
+	/// and let the client code decide which executor shall be used.
 	//
-	Connection { what: String },
-
 	#[ fail( display = "DoubleExecutorInit: Cannot initialize global executor twice" ) ]
 	//
 	DoubleExecutorInit,
 
+	/// An backend error happened while trying to spawn:
+	///
+	/// - Spawning on wasm   is infallible.
+	/// - Spawning on juliex is infallible.
+	/// - Spawning on futures::executor::LocalPool can fail with [futures::task::SpawnError].
+	///   The only reason for this is that the executor was shutdown.
+	///
+	/// Note that even though certain executors are infallible right now, but that might change in the
+	/// future, notably WASM is bound to change quite alot over time.
+	//
 	#[ fail( display = "Spawn: Failed to spawn a future in: {}", context ) ]
 	//
 	Spawn { context: String },
-
-	#[ fail( display = "Timeout: {}", context ) ]
-	//
-	Timeout { context: String },
 }
 
 
