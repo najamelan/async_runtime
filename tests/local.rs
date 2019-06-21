@@ -210,4 +210,3 @@ fn threads()
 	assert_eq!( *number.borrow(), 10 );
 }
 
-

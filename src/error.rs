@@ -1,10 +1,10 @@
 use crate::{ import::* };
 
 
-/// The error type for errors happening in async_runtime.
+/// The error type for errors happening in `async_runtime`.
 ///
 /// Use [`RtErr::kind()`] to know which kind of error happened. [RtErrKind] implements [Eq],
-/// so you can the following if all you want to know is the kind of error:
+/// so you can do the following if all you want to know is the kind of error:
 ///
 /// ```ignore
 /// use async_runtime::*;
@@ -15,17 +15,17 @@ use crate::{ import::* };
 /// {
 ///    Err(e) =>
 ///    {
-///       match e.kind()
+///       if let RtErrKind::DoubleExecutorInit = e.kind()
 ///       {
-///          RtErrKind::DoubleExecutorInit => println!( "{}", e ),
-///          _ => {},
+///          println!( "{}", e );
 ///       }
 ///
 ///       // This also works:
 ///       //
-///       if let RtErrKind::DoubleExecutorInit = e.kind()
+///       match e.kind()
 ///       {
-///          println!( "{}", e );
+///          RtErrKind::DoubleExecutorInit => println!( "{}", e ),
+///          _ => {},
 ///       }
 ///    },
 ///
@@ -42,7 +42,7 @@ pub struct RtErr
 
 
 
-/// The different kind of errors that can happen when you use the thespis_impl API.
+/// The different kind of errors that can happen when you use the `async_runtime` API.
 //
 #[ derive( Clone, PartialEq, Eq, Debug, Fail ) ]
 //
@@ -61,14 +61,19 @@ pub enum RtErrKind
 	/// - Spawning on wasm   is infallible.
 	/// - Spawning on juliex is infallible.
 	/// - Spawning on futures::executor::LocalPool can fail with [futures::task::SpawnError].
-	///   The only reason for this is that the executor was shutdown.
+	///   The only reason for this is that the executor was shut down.
 	///
-	/// Note that even though certain executors are infallible right now, but that might change in the
+	/// Note that even though certain executors are infallible right now, that might change in the
 	/// future, notably WASM is bound to change quite alot over time.
 	//
 	#[ fail( display = "Spawn: Failed to spawn a future in: {}", context ) ]
 	//
-	Spawn { context: String },
+	Spawn
+	{
+		/// Add contextual information to which future failed to spawn.
+		///
+		context: String
+	},
 }
 
 
@@ -90,7 +95,7 @@ impl Fail for RtErr
 
 impl fmt::Display for RtErr
 {
-	fn fmt( &self, f: &mut fmt::Formatter ) -> fmt::Result
+	fn fmt( &self, f: &mut fmt::Formatter<'_> ) -> fmt::Result
 	{
 		fmt::Display::fmt( &self.inner, f )
 	}

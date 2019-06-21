@@ -1,7 +1,10 @@
 use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 
 
-/// An executor that uses futures 0.3 LocalPool or juliex threadpool under the hood.
+/// An executor that uses [futures 0.3 LocalPool](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/executor/struct.LocalPool.html) or [juliex](https://docs.rs/juliex) threadpool under the hood.
+/// Normally you don't need to construct this yourself, just use the [`rt`](crate::rt) module methods to spawn futures.
+//
+#[ derive( Debug ) ]
 //
 pub struct Exec03
 {
@@ -24,7 +27,7 @@ impl Default for Exec03
 
 impl Exec03
 {
-	/// Create a new Exec03 from a configuration
+	/// Create a new Exec03 from an [RtConfig](crate::RtConfig) configuration.
 	//
 	pub fn new( config: RtConfig ) -> Self
 	{
@@ -48,7 +51,7 @@ impl Exec03
 	}
 
 
-	/// Getter for active executor configuration
+	/// Getter for the active executor configuration.
 	//
 	pub fn config( &self ) -> &RtConfig
 	{
@@ -57,7 +60,9 @@ impl Exec03
 
 
 
-	/// Run all spawned futures to completion.
+	/// Run all spawned futures to completion. Note that this does nothing for the threadpool,
+	/// but if you are using a local pool, you will need to run this or futures will not be polled.
+	/// This blocks the current thread.
 	//
 	pub fn run( &self )
 	{
@@ -69,8 +74,12 @@ impl Exec03
 	}
 
 
-	/// Spawn a future to be run on the LocalPool (current thread)
-	/// TODO: should we include the spawnerror from futures as a cause?
+	/// Spawn a future to be run on the default executor. Note that this requires the
+	/// future to be `Send` in order to work for both the local pool and the threadpool.
+	/// When you need to spawn futures that are not `Send` on the local pool, please use
+	/// [`spawn_local`](Exec03::spawn_local).
+	///
+	// TODO: should we include the spawnerror from futures as a cause in RtErrKind?
 	//
 	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{
@@ -88,7 +97,9 @@ impl Exec03
 	}
 
 
-	/// Spawn a future to be run on the LocalPool (current thread)
+	/// Spawn a `!Send` future to be run on the LocalPool (current thread). Note that the executor must
+	/// be created with a local pool configuration. This will err if you try to call this on an executor
+	/// set up with a threadpool.
 	//
 	pub fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
 	{

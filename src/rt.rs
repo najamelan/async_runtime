@@ -1,13 +1,8 @@
-//! This is a convenience module for setting a default runtime and allowing code throughout to use [spawn].
+//! This is a convenience module for setting a default runtime and allowing code throughout to use [rt::spawn].
 //! It means you don't have to pass an executor around everywhere.
 //!
-//! ### Usage
-//!
-//! ```
-//! use async_runtime::*;
-//!
-//!
-//! ```
+//! For examples, please look in the
+//! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 //!
 
 pub(crate) mod exec03;
@@ -34,11 +29,15 @@ thread_local!
 /// ### Example
 ///
 /// ```
+/// #![ feature( async_await ) ]
+///
 /// use async_runtime::*;
 ///
 /// rt::init( RtConfig::Local ).expect( "Set default executor" );
 ///
 /// // ...spawn some tasks...
+/// //
+/// rt::spawn( async {} ).expect( "spawn future" );
 ///
 /// // Important, otherwise the local executor does not poll. For the threadpool this is not necessary,
 /// // as futures will be polled immediately after spawning them.
@@ -74,13 +73,15 @@ fn default_init()
 }
 
 
-/// Spawn a future to be run on the default executor (set with [init] or juliex threadpool).
+/// Spawn a future to be run on the default executor (set with [init] or juliex threadpool by default).
 ///
 /// ```
 /// # #![ feature( async_await) ]
 /// #
 /// use async_runtime::*;
 ///
+/// // This will run on the threadpool. For the local pool you must call [rt::init] and [rt::run].
+/// //
 /// rt::spawn( async
 /// {
 ///    println!( "async execution" );
@@ -102,8 +103,7 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Rt
 /// if the current executor is the threadpool.
 ///
 /// Does exactly the same as [spawn], but does not require the future to be [Send]. If your
-/// future is [Send], you can just use [spawn]. It will always spawn on the executor set with
-/// init.
+/// future is [Send], you can just use [spawn]. It will always spawn on the default executor.
 //
 pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtErr >
 {
@@ -115,9 +115,9 @@ pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtE
 }
 
 
-/// Run all spawned futures to completion.
-/// Do not call it from within a spawned task.
-/// TODO: test what happens if you do and document.
+/// Run all spawned futures to completion. This is a no-op for the threadpool. However you must
+/// run this after spawning on the local pool or futures won't be polled.
+/// Do not call it from within a spawned task, or your program will hang or panic.
 //
 pub fn run()
 {
@@ -130,8 +130,8 @@ pub fn run()
 
 
 /// Get the configuration for the current default executor.
-/// Note that if this returns None and you call [spawn], a default executor
-/// will be initialized (with [default_init]), after which this will no longer return None.
+/// Note that if this returns `None` and you call [`spawn`], a default executor
+/// will be initialized, after which this will no longer return `None`.
 ///
 /// If you are a library author you can use this to generate a clean error message
 /// if you have a hard requirement for a certain executor.
@@ -155,6 +155,7 @@ pub fn current_rt() -> Option<RtConfig>
 
 
 /// Block the current thread until the given future resolves and return the Output.
+/// This just forwards to `futures::executor::block_on` under the hood.
 //
 pub fn block_on< F: Future >( fut: F ) -> F::Output
 {
