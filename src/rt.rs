@@ -46,7 +46,6 @@ thread_local!
 /// rt::run();
 ///
 /// ```
-///
 //
 pub fn init( config: RtConfig ) -> Result< (), RtErr >
 {

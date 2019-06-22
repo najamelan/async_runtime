@@ -11,7 +11,7 @@ addons:
   chrome: stable
 
 install:
-  - cargo install wasm-pack
+  - cargo install --force wasm-pack
 
 script:
 

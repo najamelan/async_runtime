@@ -38,7 +38,8 @@
 //! There isn't currently a separate api documentation for WASM and docs.rs will not show modules included only
 //! when the target is WASM. However, the use of the library is identical, so I have chosen not to set up a separate
 //! documentation. You can check the wasm example in the
-//! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
+//! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples), as
+//! well as the integration tests.
 //!
 //!
 //! ## Table of Contents
