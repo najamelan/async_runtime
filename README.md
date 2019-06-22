@@ -1,6 +1,12 @@
 # async_runtime
 
-A lightweight runtime for global spawning of futures.
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
+[![Build Status](https://api.travis-ci.org/najamelan/async_runtime.svg?branch=master)](https://travis-ci.org/najamelan/async_runtime)
+[![Docs](https://docs.rs/async_runtime/badge.svg)](https://docs.rs/async_runtime)
+![crates.io](https://img.shields.io/crates/v/async_runtime.svg)
+
+
+> A lightweight runtime for global spawning of futures.
 
 The purpose of `async_runtime` is to make it convenient to spawn and run futures.
 It allows library authors to call [`rt::spawn( future );`](rt::spawn) rather than having to take a `T: Executor`,
@@ -28,7 +34,47 @@ On WASM, the default executor is also a threadpool, even though that's impossibl
 have to call `rt::init`. This might seem like an odd API design, but WASM will have threads in the future,
 so I prefered keeping the API future proof and consistent with other targets.
 
-### Examples
+
+## Table of Contents
+
+- [Install](#install)
+  - [Dependencies](#dependencies)
+- [Usage](#usage)
+- [API](#api)
+- [Contributing](#contributing)
+  - [Code of Conduct](#code-of-conduct)
+- [License](#license)
+
+
+## Install
+With [cargo add](https://github.com/killercup/cargo-edit):
+`cargo add async_runtime`
+
+With [cargo yaml](https://gitlab.com/storedbox/cargo-yaml):
+```yaml
+dependencies:
+
+  async_runtime: ^0.1
+```
+
+With raw Cargo.toml
+```toml
+[dependencies]
+
+   async_runtime = "^0.1"
+```
+
+### Dependencies
+
+This crate only has one dependiency. Cargo will automatically handle it's dependencies for you.
+
+```yaml
+dependencies:
+
+  futures-preview: { version: ^0.3.0-alpha.15 }
+```
+
+## Usage
 
 Please have a look in the [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 
@@ -123,4 +169,24 @@ fn main()
 	futures::executor::block_on( program );
 }
 ```
+
+## API
+
+Api documentation can be found on [docs.rs](https://docs.rs/async_runtime).
+
+
+## Contributing
+
+This repository accepts contributions. Ideas, questions, feature requests and bug reports can be filed through github issues.
+
+Pull Requests are welcome on github. By commiting pull requests, you accept that your code might be modified and reformatted to fit the project coding style or to improve the implementation. Please discuss what you want to see modified before filing a pull request if you don't want to be doing work that might be rejected.
+
+
+### Code of conduct
+
+Any of the behaviors described in [point 4 "Unacceptable Behavior" of the Citizens Code of Conduct](http://citizencodeofconduct.org/#unacceptable-behavior) are not welcome here and might get you banned. If anyone including maintainers and moderators of the project fail to respect these/your limits, you are entitled to call them out.
+
+## License
+
+[Unlicence](https://unlicense.org/)
 
