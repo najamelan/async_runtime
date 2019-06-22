@@ -4,4 +4,19 @@ cache   : cargo
 rust:
   # - stable
   # - beta
-- nightly
+  - nightly
+
+addons:
+  firefox: latest
+  chrome: stable
+
+install:
+  - cargo install wasm-pack
+
+script:
+
+  - cargo test
+
+  - wasm-pack test  --firefox --headless
+  - wasm-pack test  --chrome  --headless
+
