@@ -7,6 +7,8 @@ use
 
 /// An executor that works on WASM.
 //
+#[ derive( Debug ) ]
+//
 pub struct WasmExec
 {
 	_config: RtConfig

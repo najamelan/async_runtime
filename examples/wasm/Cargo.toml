@@ -1,0 +1,23 @@
+# Auto-generated from "Cargo.yml"
+[dependencies]
+wasm-bindgen = "^0.2"
+
+[dependencies.async_runtime]
+path = "../../../async_runtime"
+
+[dependencies.web-sys]
+features = ["console", "Document", "Element", "HtmlElement", "Node", "Window"]
+version = "^0.3"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/entrypoint.rs"
+
+[package]
+authors = ["Naja Melan <najamelan@autistici.org>"]
+description = "An example for using async_runtime in wasm."
+edition = "2018"
+license = "Unlicence"
+name = "async_runtime_wasm_example"
+repository = "https::/github.com/najamelan/async_runtime"
+version = "0.1.0"

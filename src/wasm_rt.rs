@@ -77,13 +77,12 @@ thread_local!
 
 
 /// Set the executor to use by default. Run this before calls to run or spawn.
-/// This is optional and if you don't set this, the Exec03 executor will be used.
 ///
 /// ### Example
 ///
 /// Use the tokio runtime in order to get support for epoll and the like.
 /// ```rust, ignore
-/// rt::init( box TokioRT::default() ).expect( "Only set the executor once" );
+/// rt::init( RtConfig::Local ).expect( "Set default executor" );
 /// ```
 ///
 //
