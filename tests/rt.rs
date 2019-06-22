@@ -31,7 +31,8 @@ fn localpool()
 }
 
 
-
+#[ cfg( feature = "juliex" ) ]
+//
 #[test]
 //
 fn thread_pool()
@@ -45,6 +46,8 @@ fn thread_pool()
 
 
 
+#[ cfg( feature = "juliex" ) ]
+//
 #[test]
 //
 fn spawn()

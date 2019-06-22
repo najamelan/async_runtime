@@ -3,6 +3,7 @@
 wasm-bindgen = "^0.2"
 
 [dependencies.async_runtime]
+default-features = false
 path = "../../../async_runtime"
 
 [dependencies.web-sys]

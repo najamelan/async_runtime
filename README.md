@@ -38,6 +38,7 @@ so I prefered keeping the API future proof and consistent with other targets.
 ## Table of Contents
 
 - [Install](#install)
+  - [Features](#features)
   - [Dependencies](#dependencies)
 - [Usage](#usage)
   - [WASM](#wasm)
@@ -65,14 +66,31 @@ With raw Cargo.toml
    async_runtime = "^0.1"
 ```
 
+### Features
+
+There is one feature: `juliex`. It's on by default and you can turn it off if you only want the localpool. On wasm, turn it off as it's not being used. See the [Dependencies section](#dependencies).
+
 ### Dependencies
 
-This crate only has one dependiency. Cargo will automatically handle it's dependencies for you.
+This crate has few dependiencies. Cargo will automatically handle it's dependencies for you, except:
+
+- `juliex` is optional. Add the dependency with `default-features = false` to disable. On wasm you should also
+  do this as it won't be used:
+
+  ```toml
+  [dependencies]
+
+   	async_runtime = { version = "^0.1", default-features = false }
+  ```
 
 ```yaml
 dependencies:
 
-  futures-preview: { version: ^0.3.0-alpha.15 }
+  failure         : ^0.1
+  futures-preview : { version: ^0.3.0-alpha.16, features: [ std, compat, nightly ], default-features: false }
+  log             : ^0.4
+  once_cell       : ^0.1
+  juliex          : { version: 0.3.0-alpha.6, optional: true }
 ```
 
 ## Usage
@@ -160,6 +178,10 @@ fn main()
 
 			}.remote_handle();
 
+
+			// If the juliex feature is enabled, RtConfig::Pool becomes the default executor, so we don't
+			// have to call rt::init.
+			//
 			rt::spawn( fut ).expect( "spawn task" );
 			tasks.push( handle );
 		}
@@ -172,6 +194,13 @@ fn main()
 ```
 
 ### Wasm
+
+Note that it's best to turn of default-features in your Cargo.toml to avoid loading `juliex` which isn't used on wasm.
+```toml
+[dependencies]
+
+	async_runtime = { version = "^0.1", default-features = false }
+```
 
 To use the crate in wasm, please have a look at the example in the examples directory of the repository.
 

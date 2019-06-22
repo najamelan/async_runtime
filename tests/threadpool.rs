@@ -1,4 +1,6 @@
 #![ cfg(not( target_arch = "wasm32" )) ]
+#![ cfg(     feature     = "juliex"  ) ]
+
 #![ feature( async_await ) ]
 
 // Tested:

@@ -92,7 +92,17 @@ impl Exec03
 			   	.map_err( |_| RtErrKind::Spawn{ context: "Futures 0.3 LocalPool spawn".into() }.into() ),
 
 
-			RtConfig::Pool{..} => Ok( juliex::spawn( fut ) ),
+
+			RtConfig::Pool =>
+			{
+				#[ cfg( feature = "juliex" ) ]
+				//
+				return Ok( juliex::spawn( fut ) );
+
+				#[ cfg( not( feature = "juliex" ) ) ]
+				//
+				return Err( RtErrKind::Spawn{ context: "async_runtime was compiled without the juliex feature".into() }.into() );
+			}
 		}
 	}
 

@@ -19,6 +19,12 @@ impl Default for RtConfig
 {
 	fn default() -> Self
 	{
-		RtConfig::Pool
+		#[ cfg( feature = "juliex" ) ]
+		//
+		return RtConfig::Pool;
+
+		#[ cfg( not( feature = "juliex" ) ) ]
+		//
+		return RtConfig::Local;
 	}
 }

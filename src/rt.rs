@@ -23,8 +23,9 @@ thread_local!
 /// author, don't call this unless you create the thread, otherwise it's up to client code to
 /// decide which executor to use. Just call [spawn].
 ///
-/// This is optional and if you don't set this, the juliex thread pool executor will be set to
-/// be the executor for this thread. If you want a LocalPool (runs on the current thread), you must call this:
+/// This is optional and if you don't set this, the default executor depends on whether the `juliex`
+/// feature is enabled for the crate. If it is, it is the default executor, otherwise it will be the
+/// local pool. If it's enabled and you still want the local pool, use this method.
 ///
 /// ### Example
 ///
@@ -59,7 +60,7 @@ pub fn init( config: RtConfig ) -> Result< (), RtErr >
 }
 
 
-/// If no executor is set, initialize with defaults
+/// If no executor is set, initialize with defaults (pool if juliex feature is enabled, local pool otherwise)
 //
 fn default_init()
 {
@@ -73,7 +74,8 @@ fn default_init()
 }
 
 
-/// Spawn a future to be run on the default executor (set with [init] or juliex threadpool by default).
+/// Spawn a future to be run on the default executor (set with [init] or default, depending on `juliex feature`,
+/// see documentation for rt::init).
 ///
 /// ```
 /// # #![ feature( async_await) ]
