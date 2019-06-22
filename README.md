@@ -40,6 +40,7 @@ so I prefered keeping the API future proof and consistent with other targets.
 - [Install](#install)
   - [Dependencies](#dependencies)
 - [Usage](#usage)
+  - [WASM](#wasm)
 - [API](#api)
 - [Contributing](#contributing)
   - [Code of Conduct](#code-of-conduct)
@@ -168,6 +169,25 @@ fn main()
 
 	futures::executor::block_on( program );
 }
+```
+
+### Wasm
+
+To use the crate in wasm, please have a look at the example in the examples directory of the repository.
+
+For the documentation, as docs.rs does not make it available, see it on [github pages](TODO).
+
+For running the integration tests:
+```bash
+cargo install wasm-pack wasm-bindgen-cli
+```
+Now you can do either:
+```bash
+wasm-pack test --firefox --headless
+```
+or:
+```bash
+cargo test --target wasm32-unknown-unknown
 ```
 
 ## API
