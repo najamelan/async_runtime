@@ -1,66 +1,8 @@
-//! This is a convenience module for setting a default runtime and allowing code throughout to use spawn.
+//! This is a convenience module for setting a default runtime and allowing code throughout to use [rt::spawn].
 //! It means you don't have to pass an executor around everywhere.
 //!
-//! Without this you need to do something like:
-//! ```rust, ignore
-//! fn main()
-//! {
-//!    let mut pool  = LocalPool::new();
-//!    let mut exec  = pool.spawner();
-//!    let mut exec2 = exec.clone();
-//!
-//!    let program = async move
-//!    {
-//!       let a = MyActor;
-//!
-//!       // Create mailbox
-//!       //
-//!       let mb  : Inbox<MyActor> = Inbox::new();
-//!       let mut addr  = Addr::new( mb.sender() );
-//!
-//!       // Manually spawn the future.
-//!       //
-//!       let move_mb = async move { mb.start_fut( a ).await; };
-//!       exec2.spawn_local( move_mb ).expect( "Spawning mailbox failed" );
-//!
-//!       let result  = addr.call( Ping( "ping".into() ) ).await;
-//!
-//!       assert_eq!( "pong".to_string(), result );
-//!       dbg!( result );
-//!    };
-//!
-//!    exec.spawn_local( program ).expect( "Spawn program" );
-//!
-//!    pool.run();
-//! }
-//! ```
-//!
-//! Now you get:
-//! ```rust, ignore
-//! fn main()
-//! {
-//!    let program = async move
-//!    {
-//!       let a = MyActor;
-//!
-//!       // Create mailbox
-//!       //
-//!       let     mb  : Inbox<MyActor> = Inbox::new();
-//!       let mut addr                 = Addr::new( mb.sender() );
-//!
-//!       mb.start( a ).expect( "Failed to start mailbox" );
-//!
-//!       let result  = addr.call( Ping( "ping".into() ) ).await;
-//!
-//!       assert_eq!( "pong".to_string(), result );
-//!       dbg!( result );
-//!    };
-//!
-//!    rt::spawn( program ).expect( "Spawn program" );
-//!
-//!    rt::run();
-//! }
-//! ```
+//! For a complete example running in a browser, please look in the
+//! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples/wasm).
 //!
 use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 
@@ -76,15 +18,33 @@ thread_local!
 
 
 
-/// Set the executor to use by default. Run this before calls to run or spawn.
+/// Set the executor to use by default. Run this before calls to spawn. If you are a library
+/// author, don't call this unless you create the thread, otherwise it's up to client code to
+/// decide which executor to use. Just call [spawn].
+///
+/// This is optional and if you don't set this, the default executor depends on whether the `juliex`
+/// feature is enabled for the crate. If it is, it is the default executor, otherwise it will be the
+/// local pool. If it's enabled and you still want the local pool, use this method.
 ///
 /// ### Example
 ///
-/// Use the tokio runtime in order to get support for epoll and the like.
-/// ```rust, ignore
-/// rt::init( RtConfig::Local ).expect( "Set default executor" );
 /// ```
+/// #![ feature( async_await ) ]
 ///
+/// use async_runtime::*;
+///
+/// rt::init( RtConfig::Local ).expect( "Set default executor" );
+///
+/// // ...spawn some tasks...
+/// //
+/// rt::spawn( async {} ).expect( "spawn future" );
+///
+/// // Important, otherwise the local executor does not poll. For the threadpool this is not necessary,
+/// // as futures will be polled immediately after spawning them.
+/// //
+/// rt::run();
+///
+/// ```
 //
 pub fn init( config: RtConfig ) -> Result< (), RtErr >
 {
@@ -98,7 +58,7 @@ pub fn init( config: RtConfig ) -> Result< (), RtErr >
 }
 
 
-// If no executor is set, set it to Exec03
+/// If no executor is set, initialize with defaults (pool if juliex feature is enabled, local pool otherwise)
 //
 fn default_init()
 {
@@ -112,8 +72,22 @@ fn default_init()
 }
 
 
-/// Spawn a future to be run on the LocalPool (current thread)
-/// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
+/// Spawn a future to be run on the default executor (set with [init] or default, depending on `juliex feature`,
+/// see documentation for rt::init).
+///
+/// ```
+/// # #![ feature( async_await) ]
+/// #
+/// use async_runtime::*;
+///
+/// // This will run on the threadpool. For the local pool you must call [rt::init] and [rt::run].
+/// //
+/// rt::spawn( async
+/// {
+///    println!( "async execution" );
+///
+/// });
+/// ```
 //
 pub fn spawn( fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 {
@@ -125,8 +99,11 @@ pub fn spawn( fut: impl Future< Output = () > + 'static + Send ) -> Result< (), 
 }
 
 
-/// Spawn a future to be run on the LocalPool (current thread)
-/// It will be boxed, because the Executor trait cannot take generic parameters and be object safe...
+/// Spawn a future to be run on the LocalPool (current thread). This will return an error
+/// if the current executor is the threadpool.
+///
+/// Does exactly the same as [spawn], but does not require the future to be [Send]. If your
+/// future is [Send], you can just use [spawn]. It will always spawn on the default executor.
 //
 pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
 {
@@ -140,8 +117,8 @@ pub fn spawn_local( fut: impl Future< Output = () > + 'static ) -> Result< (), R
 
 
 /// Get the configuration for the current default executor.
-/// Note that if this returns None and you call [spawn], a default executor
-/// will be initialized (with [default_init]), after which this will no longer return None.
+/// Note that if this returns `None` and you call [`spawn`], a default executor
+/// will be initialized, after which this will no longer return `None`.
 ///
 /// If you are a library author you can use this to generate a clean error message
 /// if you have a hard requirement for a certain executor.

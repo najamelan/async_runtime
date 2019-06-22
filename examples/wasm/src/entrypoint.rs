@@ -15,6 +15,10 @@ use
 //
 pub fn main() -> Result<(), JsValue>
 {
+	// Since there is no threads in wasm for the moment, this is optional if you include async_runtime
+	// with `default-dependencies = false`, the local pool will be the default. However this might
+	// change in the future.
+	//
 	rt::init( RtConfig::Local ).expect( "Set default executor" );
 
 	let program = async move

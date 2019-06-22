@@ -25,14 +25,20 @@
 //!
 //! Both crates work on WASM.
 //!
-//! When not on WASM, the default executor is the juliex threadpool. This is because the executor is set
-//! per thread and when tasks run on a threadpool thread and they spawn, they will automatically spawn
-//! on the threadpool. This alleviates the need for initialization code on the threadpool threads.
-//! This means that you have to call [`rt::init`] if you want the `LocalPool`.
+//! When not on WASM, the default executor is the juliex threadpool (unless you use `default-features = false`).
+//! This is because the executor is set per thread and when tasks run on a threadpool thread and they spawn,
+//! they will automatically spawn on the threadpool. This alleviates the need for initialization code on the threadpool
+//! threads. This means that you have to call [`rt::init`] if you want the `LocalPool`.
 //!
-//! On WASM, the default executor is also a threadpool, even though that's impossible. It means you always
-//! have to call `rt::init`. This might seem like an odd API design, but WASM will have threads in the future,
+//! On WASM, the default executor is also a threadpool, even though that's impossible. It's recommended to use
+//! `default-features = false` on wasm to disable the dependency on juliex. This will change the default executor
+//! to be the local pool. This might seem like an odd API design, but WASM will have threads in the future,
 //! so I prefered keeping the API future proof and consistent with other targets.
+//!
+//! There isn't currently a separate api documentation for WASM and docs.rs will not show modules included only
+//! when the target is WASM. However, the use of the library is identical, so I have chosen not to set up a separate
+//! documentation. You can check the wasm example in the
+//! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 //!
 //!
 //! ## Table of Contents
@@ -124,7 +130,7 @@
 //! 	//
 //! 	rt::init( RtConfig::Local ).expect( "executor init" );
 //!
-//! 	// Please look at the documentatino for rt::spawn for the possible errors here.
+//! 	// Please look at the documentation for rt::spawn for the possible errors here.
 //! 	//
 //! 	do_something_in_parallel().expect( "Spawn futures" );
 //!
@@ -273,10 +279,9 @@ mod import
 {
 	pub use
 	{
-		once_cell :: { unsync::OnceCell, unsync::Lazy, unsync_lazy } ,
-		failure :: { Backtrace, Fail, Context as FailContext } ,
-
-		std :: { fmt, future::Future, rc::Rc, cell::RefCell, pin::Pin },
+		once_cell :: { unsync::OnceCell, unsync::Lazy, unsync_lazy          } ,
+		failure   :: { Backtrace, Fail, Context as FailContext              } ,
+		std       :: { fmt, future::Future, rc::Rc, cell::RefCell, pin::Pin } ,
 
 		futures ::
 		{

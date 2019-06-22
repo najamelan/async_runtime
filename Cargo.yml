@@ -1,13 +1,25 @@
 package:
 
-  name   : async_runtime
-  version: 0.1.0
-  authors: [ Naja Melan <najamelan@autistici.org> ]
-  edition: '2018'
+  name       : async_runtime
+  version    : 0.1.0
+  authors    : [ Naja Melan <najamelan@autistici.org> ]
+  edition    : '2018'
+  description: A lightweight universal runtime for futures.
+  repository : https::/github.com/najamelan/async_runtime
+  license    : Unlicence
+  categories : [ asynchronous ]
+  keywords   : [ runtime, async, futures ]
+  readme     : README.md
 
   metadata:
     docs.rs:
       all-features: true
+
+
+badges:
+
+  travis-ci   : { repository: najamelan/async_runtime   }
+  maintenance : { status    : actively-developed        }
 
 
 features:
