@@ -83,14 +83,14 @@ This crate has few dependiencies. Cargo will automatically handle it's dependenc
    	async_runtime = { version = "^0.1", default-features = false }
   ```
 
-```yaml
-dependencies:
+Other dependencies:
 
-  failure         : ^0.1
-  futures-preview : { version: ^0.3.0-alpha.16, features: [ std, compat, nightly ], default-features: false }
-  log             : ^0.4
-  once_cell       : ^0.1
-  juliex          : { version: 0.3.0-alpha.6, optional: true }
+```yaml
+failure         : ^0.1
+futures-preview : { version: ^0.3.0-alpha.16, features: [ std, compat, nightly ], default-features: false }
+log             : ^0.4
+once_cell       : ^0.1
+juliex          : { version: 0.3.0-alpha.6, optional: true }
 ```
 
 ## Usage
