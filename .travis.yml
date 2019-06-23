@@ -14,9 +14,11 @@ cache:
     - /home/travis/.cargo
 
 # But don't cache the cargo registry
+# and remove wasm-pack binary to avoid the installer asking confirmation for overwriting it.
 #
 before_cache:
   - rm -rf /home/travis/.cargo/registry
+  - rm -rf /home/travis/.cargo/bin/wasm-pack
 
 
 addons:
