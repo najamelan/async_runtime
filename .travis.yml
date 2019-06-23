@@ -1,5 +1,5 @@
 language: rust
-# cache   : cargo
+cache   : cargo
 
 rust:
   # - stable
@@ -8,7 +8,7 @@ rust:
 
 addons:
   firefox: latest
-  chrome: stable
+  chrome : stable
 
 install:
   - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
