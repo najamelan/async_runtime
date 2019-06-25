@@ -202,16 +202,21 @@
 //!
 //! ### Wasm
 //!
-//! Note that it's best to turn of default-features in your Cargo.toml to avoid loading `juliex` which isn't used on wasm.
+//! Note that it's best to turn of default-features in your Cargo.toml to avoid loading `juliex`
+//!  which isn't used on wasm.
 //! ```toml
 //! [dependencies]
 //!
 //!    async_runtime = { version = "^0.1", default-features = false }
 //! ```
 //!
-//! To use the crate in wasm, please have a look at the example in the examples directory of the repository.
+//! To use the crate in wasm, please have a look at the example in the examples directory of the
+//! [repository](https://github.com/najamelan/async_runtime).
 //!
-//! For the documentation, as docs.rs does not make it available, see it on [github pages](#TODO).
+//! For the documentation, docs.rs does not make the wasm specific parts available, but their use
+//! is identical to the `rt` module for other targets. The only difference is that even though it's
+//! on a local pool (wasm does not have threads), you don't need to call run because the browser
+//! automatically runs the promises. This might change in the future.
 //!
 //! For running the integration tests:
 //! ```bash
