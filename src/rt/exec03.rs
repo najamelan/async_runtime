@@ -31,9 +31,9 @@ impl Exec03
 	//
 	pub fn new( config: RtConfig ) -> Self
 	{
-		match &config
+		match config
 		{
-			&RtConfig::Local =>
+			RtConfig::Local =>
 			{
 				let local   = LocalPool03 ::new();
 				let spawner = local.spawner();
@@ -46,7 +46,7 @@ impl Exec03
 				}
 			}
 
-			&RtConfig::Pool{..} => Exec03{ config, local: None, spawner: None },
+			RtConfig::Pool{..} => Exec03{ config, local: None, spawner: None },
 		}
 	}
 
@@ -97,11 +97,14 @@ impl Exec03
 			{
 				#[ cfg( feature = "juliex" ) ]
 				//
-				return Ok( juliex::spawn( fut ) );
+				{
+					juliex::spawn( fut );
+					Ok(())
+				}
 
 				#[ cfg( not( feature = "juliex" ) ) ]
 				//
-				return Err( RtErrKind::Spawn{ context: "async_runtime was compiled without the juliex feature".into() }.into() );
+				Err( RtErrKind::Spawn{ context: "async_runtime was compiled without the juliex feature".into() }.into() )
 			}
 		}
 	}

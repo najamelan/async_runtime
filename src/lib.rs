@@ -263,6 +263,8 @@
 	rust_2018_idioms              ,
 )]
 
+#![allow( clippy::suspicious_else_formatting ) ]
+
 
 #[ cfg(not( target_arch = "wasm32" )) ] pub mod rt                                       ;
 #[ cfg(not( target_arch = "wasm32" )) ] pub use { rt::exec03::* }                        ;

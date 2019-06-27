@@ -124,7 +124,7 @@ impl From< FailContext<RtErrKind> > for RtErr
 {
 	fn from( inner: FailContext<RtErrKind> ) -> RtErr
 	{
-		RtErr { inner: inner }
+		RtErr { inner }
 	}
 }
 
