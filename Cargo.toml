@@ -1,4 +1,11 @@
 # Auto-generated from "Cargo.yml"
+[badges]
+[badges.maintenance]
+status = "actively-developed"
+
+[badges.travis-ci]
+repository = "najamelan/async_runtime"
+
 [dependencies]
 failure = "^0.1"
 log = "^0.4"
@@ -21,8 +28,14 @@ default = ["juliex"]
 
 [package]
 authors = ["Naja Melan <najamelan@autistici.org>"]
+categories = ["asynchronous"]
+description = "A lightweight universal runtime for futures."
 edition = "2018"
+keywords = ["runtime", "async", "futures"]
+license = "Unlicence"
 name = "async_runtime"
+readme = "README.md"
+repository = "https::/github.com/najamelan/async_runtime"
 version = "0.1.0"
 
 [package.metadata]
