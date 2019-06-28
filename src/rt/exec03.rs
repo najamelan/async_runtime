@@ -79,7 +79,13 @@ impl Exec03
 	/// When you need to spawn futures that are not `Send` on the local pool, please use
 	/// [`spawn_local`](Exec03::spawn_local).
 	///
-	// TODO: should we include the spawnerror from futures as a cause in RtErrKind?
+	/// ### Errors
+	///
+	/// When using `RtConfig::Pool` (currently juliex), this method is infallible.
+	/// When using `RtConfig::Local` (currently futures 0.3 LocalPool), this method can return a spawn
+	/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
+	/// You can call [crate::rt::run] and spawn again afterwards.
+	///
 	//
 	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{

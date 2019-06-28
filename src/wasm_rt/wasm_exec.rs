@@ -52,6 +52,10 @@ impl WasmExec
 	/// future to be `Send` in order to work for both the local pool and the threadpool.
 	/// When you need to spawn futures that are not `Send` on the local pool, please use
 	/// [`spawn_local`](WasmExec::spawn_local).
+	///
+	/// Note that this method is infallible right now, but it returns a result for consistency
+	/// with the non-wasm API and to future proof it when the wasm context ressembles other
+	/// targets more (threads, more executor options).
 	//
 	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{
@@ -64,6 +68,10 @@ impl WasmExec
 	/// Spawn a `!Send` future to be run on the LocalPool (current thread). Note that the executor must
 	/// be created with a local pool configuration. This will err if you try to call this on an executor
 	/// set up with a threadpool.
+	///
+	/// Note that this method is infallible right now, but it returns a result for consistency
+	/// with the non-wasm API and to future proof it when the wasm context ressembles other
+	/// targets more (threads, more executor options).
 	//
 	pub fn spawn_local( &self, fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
 	{
