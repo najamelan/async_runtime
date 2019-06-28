@@ -59,7 +59,7 @@ pub enum RtErrKind
 	/// An backend error happened while trying to spawn:
 	///
 	/// - Spawning on wasm   is infallible.
-	/// - Spawning on juliex is infallible.
+	/// - Spawning on juliex is infallible (as long as you don't call [rt::spawn_local](crate::rt::spawn_local)).
 	/// - Spawning on futures::executor::LocalPool can fail with [futures::task::SpawnError].
 	///   The only reason for this is that the executor was shut down.
 	///

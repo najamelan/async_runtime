@@ -27,6 +27,12 @@ thread_local!
 /// feature is enabled for the crate. If it is, it is the default executor, otherwise it will be the
 /// local pool. If it's enabled and you still want the local pool, use this method.
 ///
+/// ### Errors
+///
+/// This method will fail with [RtErrKind::DoubleExecutorInit](crate::RtErrKind::DoubleExecutorInit) if you
+/// call it twice on the same thread or if you have called [spawn] and thus the executor has been initialized
+/// by default before you call init.
+///
 /// ### Example
 ///
 /// ```
@@ -76,6 +82,15 @@ fn default_init()
 /// Spawn a future to be run on the default executor (set with [init] or default, depending on `juliex feature`,
 /// see documentation for rt::init).
 ///
+/// ### Errors
+///
+/// - When using `RtConfig::Pool` (currently juliex), this method is infallible.
+/// - When using `RtConfig::Local` (currently futures 0.3 LocalPool), this method can return a spawn
+/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
+/// You can call [crate::rt::run] and spawn again afterwards.
+///
+/// ### Example
+///
 /// ```
 /// # #![ feature( async_await) ]
 /// #
@@ -105,6 +120,14 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Rt
 ///
 /// Does exactly the same as [spawn], but does not require the future to be [Send]. If your
 /// future is [Send], you can just use [spawn]. It will always spawn on the default executor.
+///
+/// ### Errors
+///
+/// - When using `RtConfig::Pool` (currently juliex), this method will return a [RtErrKind::Spawn](crate::RtErrKind::Spawn). Since
+/// the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
+/// - When using `RtConfig::Local` (currently futures 0.3 LocalPool), this method can return a spawn
+/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
+/// You can call [rt::run](crate::rt::run) and spawn again afterwards.
 //
 pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtErr >
 {

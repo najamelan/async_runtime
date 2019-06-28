@@ -28,18 +28,21 @@
 //! When not on WASM, the default executor is the juliex threadpool (unless you use `default-features = false`).
 //! This is because the executor is set per thread and when tasks run on a threadpool thread and they spawn,
 //! they will automatically spawn on the threadpool. This alleviates the need for initialization code on the threadpool
-//! threads. This means that you have to call [`rt::init`] if you want the `LocalPool`.
+//! threads. This means that you have to call [`rt::init`] if you want the `LocalPool` (or disable the default features).
 //!
-//! On WASM, the default executor is also a threadpool, even though that's impossible. It's recommended to use
-//! `default-features = false` on wasm to disable the dependency on juliex. This will change the default executor
-//! to be the local pool. This might seem like an odd API design, but WASM will have threads in the future,
-//! so I prefered keeping the API future proof and consistent with other targets.
+//! On WASM, the default executor is also a threadpool, even though that's impossible (wasm does not have threads right now).
+//! It's recommended to use `default-features = false` on wasm to disable the dependency on juliex.
+//! This will change the default executor to be the local pool. This might seem like an odd API design,
+//! but WASM will have threads in the future, so I prefered keeping the API future proof and consistent with other targets.
+//! Another consistency choice is that `spawn` and `spawn_local` return Result, even though currently on wasm
+//! they cannot fail.
 //!
 //! There isn't currently a separate api documentation for WASM and docs.rs will not show modules included only
 //! when the target is WASM. However, the use of the library is identical, so I have chosen not to set up a separate
 //! documentation. You can check the wasm example in the
 //! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples), as
-//! well as the integration tests.
+//! well as the integration tests. You can also clone the repository and run:
+//! `cargo doc --open --target wasm32-unknown-unknown` or read the source code.
 //!
 //!
 //! ## Table of Contents
