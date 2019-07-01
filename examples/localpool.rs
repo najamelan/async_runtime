@@ -1,6 +1,12 @@
 #![ feature( async_await ) ]
 
+
 //! In this example we make a future that is not Send. We then spawn that future on a LocalPool executor.
+
+
+// unfortunately we can't rename the crate itself in Cargo.yml.
+//
+use naja_async_runtime as async_runtime;
 
 
 #[ cfg(not( target_arch = "wasm32" )) ]

@@ -108,8 +108,12 @@
 //! Please have a look in the [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 //!
 //! ```rust
-//! #![ feature( async_await ) ]
-//!
+//! # #![ feature( async_await ) ]
+//! #
+//! # // unfortunately we can't rename the crate itself in Cargo.yml.
+//! # //
+//! # use naja_async_runtime as async_runtime;
+//! #
 //! use
 //! {
 //! 	async_runtime :: { * } ,
@@ -154,6 +158,10 @@
 //!
 //! #![ feature( async_await, duration_constants ) ]
 //!
+//! # // unfortunately we can't rename the crate itself in Cargo.yml.
+//! # //
+//! # use naja_async_runtime as async_runtime;
+//! #
 //! use
 //! {
 //! 	async_runtime :: { *                                          } ,

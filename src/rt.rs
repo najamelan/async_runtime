@@ -36,8 +36,12 @@ thread_local!
 /// ### Example
 ///
 /// ```
-/// #![ feature( async_await ) ]
-///
+/// # #![ feature( async_await ) ]
+/// #
+/// # // unfortunately we can't rename the crate itself in Cargo.yml.
+/// # //
+/// # use naja_async_runtime as async_runtime;
+/// #
 /// use async_runtime::*;
 ///
 /// rt::init( RtConfig::Local ).expect( "Set default executor" );
@@ -93,6 +97,10 @@ fn default_init()
 ///
 /// ```
 /// # #![ feature( async_await) ]
+/// #
+/// # // unfortunately we can't rename the crate itself in Cargo.yml.
+/// # //
+/// # use naja_async_runtime as async_runtime;
 /// #
 /// use async_runtime::*;
 ///

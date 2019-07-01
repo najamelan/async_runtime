@@ -1,6 +1,12 @@
 #![ cfg(not( target_arch = "wasm32" )) ]
 #![ feature( async_await ) ]
 
+
+// unfortunately we can't rename the crate itself in Cargo.yml.
+//
+use naja_async_runtime as async_runtime;
+
+
 // Tested:
 //
 // - ✔ current_rt for localpool

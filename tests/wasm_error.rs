@@ -1,6 +1,12 @@
 #![ cfg( target_arch = "wasm32" )]
 #![ feature( async_await )]
 
+
+// unfortunately we can't rename the crate itself in Cargo.yml.
+//
+use naja_async_runtime as async_runtime;
+
+
 // wasm_bindgen_test currently runs all tests in the same context, so we can only init once.
 //
 // Tested:

@@ -1,13 +1,18 @@
 #![ cfg(not( target_arch = "wasm32" )) ]
 #![ feature( async_await ) ]
 
+
+// unfortunately we can't rename the crate itself in Cargo.yml.
+//
+use naja_async_runtime as async_runtime;
+
+
 // Tested:
 //
 // - ✔ shut down local pool before spawning does not generate error.
 // - ✔ double executor init error: Local - Local.
 // - ✔ double executor init error: Local - Pool.
 // - ✔ double executor init error: Pool  - Local.
-//
 
 
 use
