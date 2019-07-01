@@ -205,7 +205,7 @@ Note that it's best to turn of default-features in your Cargo.toml to avoid load
 ```toml
 [dependencies]
 
-	async_runtime = { version = "^0.1", default-features = false }
+	async_runtime = { version = "^0.1", default-features = false, package = "naja_async_runtime" }
 ```
 
 To use the crate in wasm, please have a look at the example in the examples directory of the [repository](https://github.com/najamelan/async_runtime).
