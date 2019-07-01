@@ -5,7 +5,7 @@ package:
   authors    : [ Naja Melan <najamelan@autistici.org> ]
   edition    : '2018'
   description: A lightweight universal runtime for futures.
-  repository : https::/github.com/najamelan/async_runtime
+  repository : https://github.com/najamelan/async_runtime
   license    : Unlicence
   categories : [ asynchronous ]
   keywords   : [ runtime, async, futures ]
