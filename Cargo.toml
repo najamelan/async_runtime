@@ -11,6 +11,10 @@ failure = "^0.1"
 log = "^0.4"
 once_cell = "^0.1"
 
+[dependencies.async_runtime]
+package = "naja_async_runtime"
+version = "^0.1"
+
 [dependencies.futures-preview]
 default-features = false
 features = ["std", "compat", "nightly"]
@@ -18,7 +22,7 @@ version = "^0.3.0-alpha.16"
 
 [dependencies.juliex]
 optional = true
-version = "0.3.0-alpha.6"
+version = "0.3.0-alpha.7"
 
 [dev-dependencies]
 pretty_assertions = "^0.6"
@@ -36,7 +40,7 @@ license = "Unlicense"
 name = "naja_async_runtime"
 readme = "README.md"
 repository = "https://github.com/najamelan/async_runtime"
-version = "0.1.1"
+version = "0.1.2"
 
 [package.metadata]
 [package.metadata."docs.rs"]
