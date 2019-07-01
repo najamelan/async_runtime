@@ -2,8 +2,8 @@
 
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 [![Build Status](https://api.travis-ci.org/najamelan/async_runtime.svg?branch=master)](https://travis-ci.org/najamelan/async_runtime)
-[![Docs](https://docs.rs/async_runtime/badge.svg)](https://docs.rs/async_runtime)
-![crates.io](https://img.shields.io/crates/v/async_runtime.svg)
+[![Docs](https://docs.rs/async_runtime/badge.svg)](https://docs.rs/naja_async_runtime)
+![crates.io](https://img.shields.io/crates/v/naja_async_runtime.svg)
 
 
 > A lightweight runtime for global spawning of futures.
@@ -62,14 +62,14 @@ With [cargo yaml](https://gitlab.com/storedbox/cargo-yaml):
 ```yaml
 dependencies:
 
-  async_runtime: ^0.1
+  async_runtime: { version: ^0.1, package: naja_async_runtime }
 ```
 
 With raw Cargo.toml
 ```toml
 [dependencies]
 
-   async_runtime = "^0.1"
+   async_runtime = { version = "^0.1", package = "naja_async_runtime" }
 ```
 
 ### Features
@@ -86,7 +86,7 @@ This crate has few dependiencies. Cargo will automatically handle it's dependenc
   ```toml
   [dependencies]
 
-   	async_runtime = { version = "^0.1", default-features = false }
+   	async_runtime = { version = "^0.1", default-features = false, package = "naja_async_runtime" }
   ```
 
 Other dependencies:
