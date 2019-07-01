@@ -1,6 +1,6 @@
 package:
 
-  name       : async_runtime
+  name       : naja_async_runtime
   version    : 0.1.0
   authors    : [ Naja Melan <najamelan@autistici.org> ]
   edition    : '2018'
