@@ -6,7 +6,7 @@ package:
   edition    : '2018'
   description: A lightweight universal runtime for futures.
   repository : https://github.com/najamelan/async_runtime
-  license    : Unlicence
+  license    : Unlicense
   categories : [ asynchronous ]
   keywords   : [ runtime, async, futures ]
   readme     : README.md
