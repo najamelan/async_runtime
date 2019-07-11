@@ -14,7 +14,7 @@ once_cell = "^0.1"
 [dependencies.futures-preview]
 default-features = false
 features = ["std", "compat", "nightly"]
-version = "^0.3.0-alpha.16"
+version = "=0.3.0-alpha.16"
 
 [dependencies.juliex]
 optional = true
@@ -36,7 +36,7 @@ license = "Unlicense"
 name = "naja_async_runtime"
 readme = "README.md"
 repository = "https://github.com/najamelan/async_runtime"
-version = "0.1.5"
+version = "0.1.6"
 
 [package.metadata]
 [package.metadata."docs.rs"]
@@ -51,7 +51,7 @@ codegen-units = 1
 [target."cfg(target_arch = \"wasm32\")".dependencies]
 [target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
 features = ["futures_0_3"]
-version = "0.3.22"
+version = "0.3.24"
 
 [target."cfg(target_arch = \"wasm32\")".dev-dependencies]
 wasm-bindgen-test = "^0.2"

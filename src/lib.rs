@@ -304,10 +304,12 @@ mod import
 
 		futures ::
 		{
-			prelude :: { Stream, StreamExt, Sink, SinkExt                                         } ,
+			prelude :: { Stream, Sink                                                             } ,
 			channel :: { oneshot, mpsc                                                            } ,
 			future  :: { FutureExt, TryFutureExt                                                  } ,
 			task    :: { Spawn, SpawnExt, LocalSpawn, LocalSpawnExt, Context as TaskContext, Poll } ,
+			stream  :: { StreamExt                                                                } ,
+			sink    :: { SinkExt                                                                  } ,
 
 			executor::
 			{

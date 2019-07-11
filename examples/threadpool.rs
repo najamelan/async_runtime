@@ -4,15 +4,16 @@
 //! we make them all sleep for a second and measure the time passed when they finish.
 
 
-// unfortunately we can't rename the crate itself in Cargo.yml.
-//
-use naja_async_runtime as async_runtime;
 
 
 #[ cfg(not( target_arch = "wasm32" )) ]
 //
 fn main()
 {
+	// unfortunately we can't rename the crate itself in Cargo.yml.
+	//
+	use naja_async_runtime as async_runtime;
+
 	use
 	{
 		async_runtime :: { *                                          } ,
