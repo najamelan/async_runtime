@@ -8,10 +8,6 @@
 //
 fn main()
 {
-	// unfortunately we can't rename the crate itself in Cargo.yml.
-	//
-	use naja_async_runtime as async_runtime;
-
 	use
 	{
 		async_runtime :: { *                     } ,

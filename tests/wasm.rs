@@ -2,11 +2,6 @@
 #![ feature( async_await )]
 
 
-// unfortunately we can't rename the crate itself in Cargo.yml.
-//
-use naja_async_runtime as async_runtime;
-
-
 // wasm_bindgen_test currently runs all these tests in the same context, so we can only init once.
 //
 // Tested:

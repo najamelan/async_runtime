@@ -10,10 +10,6 @@
 //
 fn main()
 {
-	// unfortunately we can't rename the crate itself in Cargo.yml.
-	//
-	use naja_async_runtime as async_runtime;
-
 	use
 	{
 		async_runtime :: { *                                          } ,
@@ -49,7 +45,7 @@ fn main()
 		join_all( tasks ).await;
 	};
 
-	futures::executor::block_on( program );
+	rt::block_on( program );
 }
 
 

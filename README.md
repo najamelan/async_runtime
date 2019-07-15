@@ -3,7 +3,7 @@
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 [![Build Status](https://api.travis-ci.org/najamelan/async_runtime.svg?branch=master)](https://travis-ci.org/najamelan/async_runtime)
 [![Docs](https://docs.rs/naja_async_runtime/badge.svg)](https://docs.rs/naja_async_runtime)
-![crates.io](https://img.shields.io/crates/v/naja_async_runtime.svg)
+[![crates.io](https://img.shields.io/crates/v/naja_async_runtime.svg)](https://crates.io/crates/naja_async_runtime)
 
 
 > A lightweight runtime for global spawning of futures.
