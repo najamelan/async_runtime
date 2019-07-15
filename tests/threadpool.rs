@@ -4,11 +4,6 @@
 #![ feature( async_await ) ]
 
 
-// unfortunately we can't rename the crate itself in Cargo.yml.
-//
-use naja_async_runtime as async_runtime;
-
-
 // Tested:
 //
 // - ✔ basic spawning using default config
@@ -21,9 +16,9 @@ use naja_async_runtime as async_runtime;
 
 use
 {
-	async_runtime :: { *                                                       } ,
-	std           :: { sync::{ Arc, Mutex }, thread                            } ,
-	futures       :: { future::FutureExt, channel::oneshot, executor::block_on } ,
+	async_runtime :: { *                                   } ,
+	std           :: { thread                              } ,
+	futures       :: { future::FutureExt, channel::oneshot } ,
 };
 
 
@@ -42,7 +37,7 @@ fn basic_spawn()
 
 	rt::spawn( task ).expect( "Spawn task" );
 
-	block_on( async move
+	rt::block_on( async move
 	{
 		assert_eq!( 2, rx.await.expect( "wait on channel" ) );
 	})
@@ -66,7 +61,7 @@ fn spawn_config()
 
 	rt::spawn( task ).expect( "Spawn task" );
 
-	block_on( async move
+	rt::block_on( async move
 	{
 		assert_eq!( 3, rx.await.expect( "wait on channel" ) );
 	})
@@ -88,7 +83,7 @@ fn spawn_boxed()
 
 	rt::spawn( task ).expect( "Spawn task" );
 
-	block_on( async move
+	rt::block_on( async move
 	{
 		assert_eq!( 5, rx.await.expect( "wait on channel" ) );
 	})
@@ -117,7 +112,7 @@ fn several()
 	rt::spawn( task  ).expect( "Spawn task"  );
 	rt::spawn( task2 ).expect( "Spawn task2" );
 
-	block_on( async move
+	rt::block_on( async move
 	{
 		assert_eq!( 6, rx2.await.expect( "wait on channel" ) );
 	})
@@ -149,7 +144,7 @@ fn within()
 
 	rt::spawn( task2 ).expect( "Spawn task2" );
 
-	block_on( async move
+	rt::block_on( async move
 	{
 		assert_eq!( 8, rx2.await.expect( "wait on channel" ) );
 	})
@@ -169,7 +164,7 @@ fn not_running_local()
 
 	rt::spawn( task ).expect( "Spawn task" );
 
-	block_on( async move
+	rt::block_on( async move
 	{
 		assert_ne!( thread::current().id(), rx.await.expect( "wait on channel" ) );
 	})

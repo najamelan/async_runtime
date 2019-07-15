@@ -2,11 +2,6 @@
 #![ feature( async_await ) ]
 
 
-// unfortunately we can't rename the crate itself in Cargo.yml.
-//
-use naja_async_runtime as async_runtime;
-
-
 // Tested:
 //
 // - ✔ basic spawning

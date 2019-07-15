@@ -26,6 +26,9 @@ pretty_assertions = "^0.6"
 [features]
 default = ["juliex"]
 
+[lib]
+name = "async_runtime"
+
 [package]
 authors = ["Naja Melan <najamelan@autistici.org>"]
 categories = ["asynchronous"]
@@ -36,7 +39,7 @@ license = "Unlicense"
 name = "naja_async_runtime"
 readme = "README.md"
 repository = "https://github.com/najamelan/async_runtime"
-version = "0.1.7"
+version = "0.2.0"
 
 [package.metadata]
 [package.metadata."docs.rs"]

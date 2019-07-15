@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0 - 2019-07-15
+
+- BREAKING CHANGE: set the lib name to async_runtime
+
 ## 0.1.7 - 2019-07-11
 
 - enable futures-preview to version 0.3.0-alpha.17. Until https://github.com/rustwasm/wasm-bindgen/issues/1640 get's fixed,
