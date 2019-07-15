@@ -195,7 +195,7 @@ fn main()
 		join_all( tasks ).await;
 	};
 
-	futures::executor::block_on( program );
+	rt::block_on( program );
 }
 ```
 
