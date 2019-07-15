@@ -14,11 +14,11 @@ once_cell = "^0.1"
 [dependencies.futures-preview]
 default-features = false
 features = ["std", "compat", "nightly"]
-version = "0.3.0-alpha.17"
+version = "^0.3.0-alpha.17"
 
 [dependencies.juliex]
 optional = true
-version = "0.3.0-alpha.7"
+version = "^0.3.0-alpha.7"
 
 [dev-dependencies]
 pretty_assertions = "^0.6"

@@ -33,22 +33,18 @@ use
 //
 fn basic_spawn()
 {
-	let number   = Arc::new( Mutex::new( 0 ) );
-	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
 	let task = async move
 	{
-		*num2.lock().expect( "lock mutex" ) = 2;
-		tx.send( () ).expect( "send on channel" );
+		tx.send( 2 ).expect( "send on channel" );
 	};
 
 	rt::spawn( task ).expect( "Spawn task" );
 
 	block_on( async move
 	{
-		rx.await.expect( "wait on channel" );
-		assert_eq!( *number.lock().expect( "lock mutex" ), 2 );
+		assert_eq!( 2, rx.await.expect( "wait on channel" ) );
 	})
 }
 
@@ -59,24 +55,20 @@ fn basic_spawn()
 //
 fn spawn_config()
 {
-	let number   = Arc::new( Mutex::new( 0 ) );
-	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
 	rt::init( RtConfig::Pool ).expect( "no double executor init" );
 
 	let task = async move
 	{
-		*num2.lock().expect( "lock mutex" ) = 3;
-		tx.send( () ).expect( "send on channel" );
+		tx.send( 3 ).expect( "send on channel" );
 	};
 
 	rt::spawn( task ).expect( "Spawn task" );
 
 	block_on( async move
 	{
-		rx.await.expect( "wait on channel" );
-		assert_eq!( *number.lock().expect( "lock mutex" ), 3 );
+		assert_eq!( 3, rx.await.expect( "wait on channel" ) );
 	})
 }
 
@@ -86,14 +78,11 @@ fn spawn_config()
 //
 fn spawn_boxed()
 {
-	let number   = Arc::new( Mutex::new( 0 ) );
-	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
 	let task = async move
 	{
-		*num2.lock().expect( "lock mutex" ) = 5;
-		tx.send( () ).expect( "send on channel" );
+		tx.send( 5 ).expect( "send on channel" );
 
 	}.boxed();
 
@@ -101,8 +90,7 @@ fn spawn_boxed()
 
 	block_on( async move
 	{
-		rx.await.expect( "wait on channel" );
-		assert_eq!( *number.lock().expect( "lock mutex" ), 5 );
+		assert_eq!( 5, rx.await.expect( "wait on channel" ) );
 	})
 }
 
@@ -113,15 +101,12 @@ fn spawn_boxed()
 //
 fn several()
 {
-	let number     = Arc::new( Mutex::new( 0 ) );
-	let num2       = number.clone();
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
 	let task = async move
 	{
-		*num2.lock().expect( "lock mutex" ) = 4 + rx.await.expect( "channel" );
-		tx2.send( () ).expect( "send on channel" );
+		tx2.send( 4 + rx.await.expect( "channel" ) ).expect( "send on channel" );
 	};
 
 	let task2 = async move
@@ -134,8 +119,7 @@ fn several()
 
 	block_on( async move
 	{
-		rx2.await.expect( "wait on channel" );
-		assert_eq!( *number.lock().expect( "lock mutex" ), 6 );
+		assert_eq!( 6, rx2.await.expect( "wait on channel" ) );
 	})
 }
 
@@ -145,8 +129,6 @@ fn several()
 //
 fn within()
 {
-	let number     = Arc::new( Mutex::new( 0 ) );
-	let num2       = number.clone();
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
@@ -158,8 +140,7 @@ fn within()
 
 		let task = async move
 		{
-			*num2.lock().expect( "lock mutex" ) = 5 + rx.await.expect( "channel" );
-			tx2.send( () ).expect( "send on channel" );
+			tx2.send( 5 + rx.await.expect( "channel" ) ).expect( "send on channel" );
 		};
 
 
@@ -170,8 +151,7 @@ fn within()
 
 	block_on( async move
 	{
-		rx2.await.expect( "wait on channel" );
-		assert_eq!( *number.lock().expect( "lock mutex" ), 8 );
+		assert_eq!( 8, rx2.await.expect( "wait on channel" ) );
 	})
 }
 
@@ -191,8 +171,7 @@ fn not_running_local()
 
 	block_on( async move
 	{
-		let tid = rx.await.expect( "wait on channel" );
-		assert_ne!( thread::current().id(), tid );
+		assert_ne!( thread::current().id(), rx.await.expect( "wait on channel" ) );
 	})
 }
 
