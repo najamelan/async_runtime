@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 - 2019-07-19
+
+- add forgotten `rt::block_on` to the wasm runtime
+
 ## 0.2.0 - 2019-07-15
 
 - BREAKING CHANGE: set the lib name to async_runtime

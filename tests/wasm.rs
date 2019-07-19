@@ -12,6 +12,9 @@
 // - ✔ spawn a boxed_local future
 // - ✔ spawn several
 // - ✔ spawn from within other task
+// - ✔ block on a             future
+// - ✔ block on a boxed       future
+// - ✔ block on a boxed_local future
 
 
 
@@ -203,4 +206,55 @@ fn within()
 		assert_eq!( 7, rx2.await.expect( "wait on channel" )as u8 );
 
 	}).expect( "Spawn assert" );
+}
+
+
+
+#[test]
+//
+fn block_on()
+{
+	let (tx, rx) = oneshot::channel();
+
+	rt::block_on( async { tx.send( 2 ).expect( "send on channel" ); } );
+
+	rt::block_on( async move
+	{
+		let num: u8 = rx.await.expect( "wait for channel" );
+		assert_eq!( 2, num );
+	});
+}
+
+
+
+#[test]
+//
+fn block_on_boxed()
+{
+	let (tx, rx) = oneshot::channel();
+
+	rt::block_on( async { tx.send( 2 ).expect( "send on channel" ); }.boxed() );
+
+	rt::block_on( async move
+	{
+		let num: u8 = rx.await.expect( "wait for channel" );
+		assert_eq!( 2, num );
+	});
+}
+
+
+
+#[test]
+//
+fn block_on_boxed_local()
+{
+	let (tx, rx) = oneshot::channel();
+
+	rt::block_on( async { tx.send( 2 ).expect( "send on channel" ); }.boxed_local() );
+
+	rt::block_on( async move
+	{
+		let num: u8 = rx.await.expect( "wait for channel" );
+		assert_eq!( 2, num );
+	});
 }
