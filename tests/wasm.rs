@@ -12,10 +12,6 @@
 // - ✔ spawn a boxed_local future
 // - ✔ spawn several
 // - ✔ spawn from within other task
-// - ✔ block on a             future
-// - ✔ block on a boxed       future
-// - ✔ block on a boxed_local future
-
 
 
 use
@@ -209,6 +205,10 @@ fn within()
 }
 
 
+/*
+
+This is removed for now. We don't test correctly here. We only test code that doesn't actually
+have to block the thread. When it does, it calls thread::park, which will panic in WASM.
 
 #[test]
 //
@@ -257,4 +257,4 @@ fn block_on_boxed_local()
 		let num: u8 = rx.await.expect( "wait for channel" );
 		assert_eq!( 2, num );
 	});
-}
+}*/
