@@ -180,6 +180,9 @@ pub fn current_rt() -> Option<RtConfig>
 
 /// Block the current thread until the given future resolves and return the Output.
 /// This just forwards to `futures::executor::block_on` under the hood.
+///
+/// **Note:** This method is not available on WASM, since WASM currently does not allow blocking
+/// the current thread.
 //
 pub fn block_on< F: Future >( fut: F ) -> F::Output
 {

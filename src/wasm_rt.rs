@@ -140,7 +140,7 @@ pub fn current_rt() -> Option<RtConfig>
 }
 
 
-
+/*
 /// Block the current thread until the given future resolves and return the Output.
 /// This just forwards to `futures::executor::block_on` under the hood.
 //
@@ -148,3 +148,4 @@ pub fn block_on< F: Future >( fut: F ) -> F::Output
 {
 	futures::executor::block_on( fut )
 }
+*/
