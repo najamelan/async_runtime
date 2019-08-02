@@ -33,6 +33,10 @@ script:
   # this will test the non wasm targets if your crate has those, otherwise remove this line.
   #
   - cargo test
+  - cargo test --release
+
+  - wasm-pack test  --firefox --headless --release
+  - wasm-pack test  --chrome  --headless --release
 
   - wasm-pack test  --firefox --headless
   - wasm-pack test  --chrome  --headless
