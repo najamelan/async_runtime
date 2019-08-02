@@ -63,14 +63,14 @@ With [cargo yaml](https://gitlab.com/storedbox/cargo-yaml):
 ```yaml
 dependencies:
 
-  async_runtime: { version: ^0.1, package: naja_async_runtime }
+  async_runtime: { version: ^0.3, package: naja_async_runtime }
 ```
 
 With raw Cargo.toml
 ```toml
 [dependencies]
 
-   async_runtime = { version = "^0.1", package = "naja_async_runtime" }
+   async_runtime = { version = "^0.3", package = "naja_async_runtime" }
 ```
 
 
@@ -94,7 +94,7 @@ This crate has few dependiencies. Cargo will automatically handle it's dependenc
   ```toml
   [dependencies]
 
-   	async_runtime = { version = "^0.1", default-features = false, package = "naja_async_runtime" }
+   	async_runtime = { version = "^0.3", default-features = false, package = "naja_async_runtime" }
   ```
 
 Other dependencies:
