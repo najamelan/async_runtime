@@ -48,6 +48,7 @@
 //! ## Table of Contents
 //!
 //! - [Install](#install)
+//!   - [Upgrade](#upgrade)
 //!   - [Features](#features)
 //!   - [Dependencies](#dependencies)
 //! - [Usage](#usage)
@@ -75,6 +76,11 @@
 //!
 //!    async_runtime = { version = "^0.1", package = "naja_async_runtime" }
 //! ```
+//!
+//! ### Upgrade
+//!
+//! Please check out the [changelog](https://github.com/najamelan/async_runtime/blob/master/CHANGELOG.md) when upgrading.
+//!
 //!
 //! ### Features
 //!

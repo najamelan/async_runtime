@@ -2,7 +2,7 @@
 
 ## 0.3 - 2019-08-02
 
-- actually, block_on will panic on wasm (uses thread::park internally), so it's removed again until wasm get's threads
+- actually, `block_on` will panic on wasm (uses `thread::park` internally), so it's removed again until wasm get's threads
 
 ## 0.2.1 - 2019-07-19
 

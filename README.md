@@ -44,6 +44,7 @@ documentation. You can check the wasm example in the [examples directory of the 
 ## Table of Contents
 
 - [Install](#install)
+  - [Upgrade](#upgrade)
   - [Features](#features)
   - [Dependencies](#dependencies)
 - [Usage](#usage)
@@ -72,9 +73,16 @@ With raw Cargo.toml
    async_runtime = { version = "^0.1", package = "naja_async_runtime" }
 ```
 
+
+### Upgrade
+
+Please check out the [changelog](https://github.com/najamelan/async_runtime/blob/master/CHANGELOG.md) when upgrading.
+
+
 ### Features
 
 There is one feature: `juliex`. It's on by default and you can turn it off if you only want the localpool. On wasm, turn it off as it's not being used. See the [Dependencies section](#dependencies).
+
 
 ### Dependencies
 
