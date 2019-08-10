@@ -14,7 +14,7 @@ once_cell = "^0.1"
 [dependencies.futures-preview]
 default-features = false
 features = ["std", "compat", "nightly"]
-version = "^0.3.0-alpha.17"
+version = "^0.3.0-alpha.18"
 
 [dependencies.juliex]
 optional = true

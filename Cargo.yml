@@ -36,7 +36,7 @@ features:
 dependencies:
 
   failure         : ^0.1
-  futures-preview : { version: ^0.3.0-alpha.17, features: [ std, compat, nightly ], default-features: false }
+  futures-preview : { version: ^0.3.0-alpha.18, features: [ std, compat, nightly ], default-features: false }
   log             : ^0.4
   once_cell       : ^0.1
   juliex          : { version: ^0.3.0-alpha.7, optional: true }
