@@ -1,15 +1,16 @@
 package:
 
-  name       : naja_async_runtime
-  version    : 0.3.4
-  authors    : [ Naja Melan <najamelan@autistici.org> ]
-  edition    : '2018'
-  description: A lightweight universal runtime for futures.
-  repository : https://github.com/najamelan/async_runtime
-  license    : Unlicense
-  categories : [ concurrency, asynchronous ]
-  keywords   : [ runtime, async, futures ]
-  readme     : README.md
+  name         : naja_async_runtime
+  version      : 0.4.0
+  authors      : [ Naja Melan <najamelan@autistici.org> ]
+  edition      : '2018'
+  description  : A lightweight universal runtime for futures.
+  repository   : https://github.com/najamelan/async_runtime
+  license      : Unlicense
+  categories   : [ concurrency, asynchronous ]
+  keywords     : [ runtime, async, futures ]
+  readme       : README.md
+  autoexamples : false
 
   metadata:
     docs:
@@ -30,7 +31,14 @@ badges:
 
 features:
 
-  default: [ juliex ]
+  default: [ macros ]
+  macros : [ naja_runtime_macros ]
+
+  juliex : [ juliex_crate, naja_runtime_macros/juliex ]
+
+  # only used internally, don't use
+  #
+  notwasm: []
 
   # only used internally, don't use
   #
@@ -39,17 +47,41 @@ features:
 
 dependencies:
 
-  failure         : ^0.1
-  futures-preview : { version: ^0.3.0-alpha, features: [ std, compat ], default-features: false }
-  log             : ^0.4
-  once_cell       : { version: ^0.2, default-features: false }
-  juliex          : { version: ^0.3.0-alpha, optional: true }
+  failure             : ^0.1
+  futures-preview     : { version: ^0.3.0-alpha, features: [ std, compat, nightly ], default-features: false }
+  log                 : ^0.4
+  once_cell           : ^0.1
+  juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex }
+  naja_runtime_macros : { path: macros, optional: true }
 
 
 dev-dependencies:
 
   pretty_assertions : ^0.6
   # flexi_logger      : ^0.11
+
+
+profile:
+
+  release:
+
+    codegen-units: 1
+    # debug        : true
+
+
+example:
+
+  - name             : attribute
+    path             : examples/attribute.rs
+    required-features: [ notwasm ]
+
+  - name             : localpool
+    path             : examples/localpool.rs
+    required-features: [ notwasm ]
+
+  - name             : threadpool
+    path             : examples/threadpool.rs
+    required-features: [ notwasm, juliex ]
 
 
 target:
@@ -65,9 +97,3 @@ target:
       wasm-bindgen-test: ^0.3
 
 
-profile:
-
-  release:
-
-    codegen-units: 1
-    # debug        : true

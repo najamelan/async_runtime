@@ -9,8 +9,8 @@ use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 pub struct Exec03
 {
 	config : RtConfig                          ,
-	local  : Option<RefCell< LocalPool03    >> ,
-	spawner: Option<RefCell< LocalSpawner03 >> ,
+	local  : Option<RefCell< LocalPool    >> ,
+	spawner: Option<RefCell< LocalSpawner >> ,
 }
 
 
@@ -35,7 +35,7 @@ impl Exec03
 		{
 			RtConfig::Local =>
 			{
-				let local   = LocalPool03 ::new();
+				let local   = LocalPool ::new();
 				let spawner = local.spawner();
 
 				Exec03
@@ -104,7 +104,7 @@ impl Exec03
 				#[ cfg( feature = "juliex" ) ]
 				//
 				{
-					juliex::spawn( fut );
+					juliex_crate::spawn( fut );
 					Ok(())
 				}
 

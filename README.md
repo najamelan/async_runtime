@@ -81,21 +81,16 @@ Please check out the [changelog](https://github.com/najamelan/async_runtime/blob
 
 ### Features
 
-There is one feature: `juliex`. It's on by default and you can turn it off if you only want the localpool. On wasm, turn it off as it's not being used. See the [Dependencies section](#dependencies).
+There is one feature: `juliex`.
+
+**Note** for library authors. You should not enable any features on `async_runtime`. The global executor is chosen by the application developer.
 
 
 ### Dependencies
 
 This crate has few dependiencies. Cargo will automatically handle it's dependencies for you, except:
 
-- `juliex` is optional. Add the dependency with `default-features = false` to disable. On wasm you should also
-  do this as it won't be used:
-
-  ```toml
-  [dependencies]
-
-   	async_runtime = { version = "^0.3", default-features = false, package = "naja_async_runtime" }
-  ```
+- `juliex` is optional. The feature is not additive. The default executor for each thread is the threadpool if `juliex` is turned on, but it is the localpool if it's not.
 
 Other dependencies:
 

@@ -20,7 +20,6 @@ use
 
 
 
-
 // RefCell being not Send, this guarantees that it's running on the local thread
 //
 #[test]

@@ -1,0 +1,53 @@
+# Auto-generated from "Cargo.yml"
+[badges]
+[badges.maintenance]
+status = "actively-developed"
+
+[badges.travis-ci]
+repository = "najamelan/async_runtime"
+
+[dependencies]
+quote = "^1"
+
+[dependencies.syn]
+features = ["full"]
+version = "^1"
+
+[dev-dependencies]
+pretty_assertions = "^0.6"
+
+[features]
+juliex = []
+
+[lib]
+proc-macro = true
+
+[package]
+authors = ["Naja Melan <najamelan@autistici.org>"]
+categories = ["concurrency", "asynchronous"]
+description = "Attributes for naja_async_runtime."
+edition = "2018"
+keywords = ["runtime", "async", "futures"]
+license = "Unlicense"
+name = "naja_runtime_macros"
+readme = "README.md"
+repository = "https://github.com/najamelan/async_runtime"
+version = "0.1.0"
+
+[package.metadata]
+[package.metadata."docs.rs"]
+all-features = true
+
+[profile]
+[profile.release]
+codegen-units = 1
+
+[target]
+[target."cfg(target_arch = \"wasm32\")"]
+[target."cfg(target_arch = \"wasm32\")".dependencies]
+[target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
+features = ["futures_0_3"]
+version = "^0.3"
+
+[target."cfg(target_arch = \"wasm32\")".dev-dependencies]
+wasm-bindgen-test = "^0.2"

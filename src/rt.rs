@@ -8,11 +8,13 @@
 pub(crate) mod exec03;
 pub use exec03::*;
 
+pub use naja_runtime_macros::*;
+
 
 use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 
 
-thread_local!
+std::thread_local!
 (
 	static EXEC: OnceCell< Exec03 > = OnceCell::new();
 );

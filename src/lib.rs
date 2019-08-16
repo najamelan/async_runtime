@@ -2,6 +2,8 @@
 //!
 #![cfg_attr( feature = "external_doc", feature(external_doc)         )]
 #![cfg_attr( feature = "external_doc", doc(include = "../README.md") )]
+//!
+
 
 
 #![ doc    ( html_root_url = "https://docs.rs/naja_async_runtime" ) ]
@@ -37,26 +39,20 @@ pub use
 
 mod import
 {
-	pub use
+	pub(crate) use
 	{
-		once_cell :: { unsync::OnceCell                                     } ,
-		failure   :: { Backtrace, Fail, Context as FailContext              } ,
-		std       :: { fmt, future::Future, rc::Rc, cell::RefCell, pin::Pin } ,
+		once_cell :: { unsync::OnceCell                        } ,
+		failure   :: { Backtrace, Fail, Context as FailContext } ,
+		std       :: { fmt, future::Future, cell::RefCell      } ,
 
 		futures ::
 		{
-			prelude :: { Stream, Sink                                                             } ,
-			channel :: { oneshot, mpsc                                                            } ,
-			future  :: { FutureExt, TryFutureExt                                                  } ,
-			task    :: { Spawn, SpawnExt, LocalSpawn, LocalSpawnExt, Context as TaskContext, Poll } ,
-			stream  :: { StreamExt                                                                } ,
-			sink    :: { SinkExt                                                                  } ,
+			task    :: { LocalSpawnExt } ,
 
 			executor::
 			{
-				LocalPool    as LocalPool03    ,
-				LocalSpawner as LocalSpawner03 ,
-				ThreadPool   as ThreadPool03   ,
+				LocalPool    ,
+				LocalSpawner ,
 			},
 		},
 	};

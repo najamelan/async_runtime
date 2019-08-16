@@ -15,19 +15,38 @@ default-features = false
 features = ["std", "compat"]
 version = "^0.3.0-alpha"
 
-[dependencies.juliex]
+[dependencies.juliex_crate]
 optional = true
+package = "juliex"
 version = "^0.3.0-alpha"
 
-[dependencies.once_cell]
-default-features = false
-version = "^0.2"
+[dependencies.naja_runtime_macros]
+optional = true
+path = "macros"
 
 [dev-dependencies]
 pretty_assertions = "^0.6"
 
+[[example]]
+name = "attribute"
+path = "examples/attribute.rs"
+required-features = ["notwasm"]
+
+[[example]]
+name = "localpool"
+path = "examples/localpool.rs"
+required-features = ["notwasm"]
+
+[[example]]
+name = "threadpool"
+path = "examples/threadpool.rs"
+required-features = ["notwasm", "juliex"]
+
 [features]
-default = ["juliex"]
+default = ["macros"]
+juliex = ["juliex_crate", "naja_runtime_macros/juliex"]
+macros = ["naja_runtime_macros"]
+notwasm = []
 external_doc = []
 
 [lib]
@@ -35,6 +54,7 @@ name = "async_runtime"
 
 [package]
 authors = ["Naja Melan <najamelan@autistici.org>"]
+autoexamples = false
 categories = ["concurrency", "asynchronous"]
 description = "A lightweight universal runtime for futures."
 edition = "2018"
@@ -43,7 +63,7 @@ license = "Unlicense"
 name = "naja_async_runtime"
 readme = "README.md"
 repository = "https://github.com/najamelan/async_runtime"
-version = "0.3.4"
+version = "0.4.0"
 
 [package.metadata]
 [package.metadata.docs]
@@ -58,7 +78,8 @@ codegen-units = 1
 [target."cfg(target_arch = \"wasm32\")"]
 [target."cfg(target_arch = \"wasm32\")".dependencies]
 [target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
-version = "^0.4"
+features = ["futures_0_3"]
+version = "^0.3"
 
 [target."cfg(target_arch = \"wasm32\")".dev-dependencies]
 wasm-bindgen-test = "^0.3"
