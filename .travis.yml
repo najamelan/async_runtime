@@ -1,10 +1,5 @@
 language: rust
-
-rust:
-  # - stable
-  # - beta
-  - nightly
-
+rust    : nightly
 
 # Need to cache the whole `.cargo` directory to keep .crates.toml for
 # cargo-update to work
@@ -17,27 +12,54 @@ cache:
 # and remove wasm-pack binary to avoid the installer asking confirmation for overwriting it.
 #
 before_cache:
+  - rm -rf /home/travis/.cargo/git
   - rm -rf /home/travis/.cargo/registry
   - rm -rf /home/travis/.cargo/bin/wasm-pack
 
 
-addons:
-  firefox: latest
-  chrome : stable
+branches:
+  only:
+    - master
+    - dev
 
-install:
-  - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+matrix:
 
-script:
+  include:
 
-  # this will test the non wasm targets if your crate has those, otherwise remove this line.
-  #
-  - cargo test
-  - cargo test --release
+    # This won't work because we use a nightly feature in dev-dependencies and the feature leaks:
+    #
+    # - rust  : stable
+    #   script: cargo check
 
-  - wasm-pack test  --firefox --headless --release
-  - wasm-pack test  --chrome  --headless --release
+    - os: linux
 
-  - wasm-pack test  --firefox --headless
-  - wasm-pack test  --chrome  --headless
+      # for wasm tests
+      #
+      install:
+        - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+
+      script:
+        - cargo test
+        - cargo test --release
+        - cargo doc --no-deps
+
+        - wasm-pack test  --firefox --headless
+        - wasm-pack test  --chrome  --headless
+
+        - wasm-pack test  --firefox --headless --release
+        - wasm-pack test  --chrome  --headless --release
+
+
+    - os    : osx
+      script:
+        - cargo test
+        - cargo test --release
+
+
+    - os    : windows
+      script:
+        - cargo test
+        - cargo test --release
+
 
