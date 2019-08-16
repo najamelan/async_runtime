@@ -7,7 +7,7 @@ package:
   description: A lightweight universal runtime for futures.
   repository : https://github.com/najamelan/async_runtime
   license    : Unlicense
-  categories : [ asynchronous ]
+  categories : [ concurrency, asynchronous ]
   keywords   : [ runtime, async, futures ]
   readme     : README.md
 
@@ -23,28 +23,26 @@ lib:
 
 badges:
 
-  travis-ci   : { repository: najamelan/async_runtime   }
-  maintenance : { status    : actively-developed        }
+  travis-ci   : { repository: najamelan/async_runtime }
+  maintenance : { status    : actively-developed      }
 
 
 features:
 
-  default: [juliex]
-
+  default: [ juliex ]
 
 
 dependencies:
 
   failure         : ^0.1
-  futures-preview : { version: ^0.3.0-alpha.18, features: [ std, compat, nightly ], default-features: false }
+  futures-preview : { version: ^0.3.0-alpha, features: [ std, compat, nightly ], default-features: false }
   log             : ^0.4
   once_cell       : ^0.1
-  juliex          : { version: ^0.3.0-alpha.7, optional: true }
+  juliex          : { version: ^0.3.0-alpha, optional: true }
 
 
 dev-dependencies:
 
-  # criterion         : { version: ^0.2           , features: [ real_blackbox ]                                 }
   pretty_assertions : ^0.6
   # flexi_logger      : ^0.11
 
@@ -55,7 +53,7 @@ target:
 
     dependencies:
 
-      wasm-bindgen-futures: { version: 0.3.24, features: [ futures_0_3 ] }
+      wasm-bindgen-futures: { version: ^0.3, features: [ futures_0_3 ] }
 
     dev-dependencies:
 

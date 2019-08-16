@@ -14,7 +14,7 @@
 
 use
 {
-	async_runtime :: { *                } ,
+	async_runtime :: { *                                   } ,
 	futures       :: { channel::oneshot, future::FutureExt } ,
 };
 
