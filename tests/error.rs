@@ -4,6 +4,7 @@
 //
 // - ✔ shut down local pool before spawning does not generate error.
 // - ✔ double executor init error: Local - Local.
+// - ✔ double executor init error: Pool  - Pool.
 // - ✔ double executor init error: Local - Pool.
 // - ✔ double executor init error: Pool  - Local.
 
@@ -36,14 +37,14 @@ fn shutdown()
 
 
 
-// Trigger DoubleExecutorInit.
+// Trigger DoubleExecutorInit with 2 threadpool executors.
 //
 #[test]
 //
-fn double_init()
+fn double_init_pool()
 {
-	             rt::init( RtConfig::Local ).expect( "no double executor init" );
-	let result = rt::init( RtConfig::Local );
+	             rt::init( RtConfig::Pool ).expect( "no double executor init" );
+	let result = rt::init( RtConfig::Pool );
 
 	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
