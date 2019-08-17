@@ -43,17 +43,15 @@ mod import
 	{
 		once_cell :: { unsync::OnceCell                        } ,
 		failure   :: { Backtrace, Fail, Context as FailContext } ,
-		std       :: { fmt, future::Future, cell::RefCell      } ,
+		std       :: { fmt, future::Future                     } ,
+	};
 
-		futures ::
-		{
-			task    :: { LocalSpawnExt } ,
 
-			executor::
-			{
-				LocalPool    ,
-				LocalSpawner ,
-			},
-		},
+	#[ cfg(not( target_arch = "wasm32" )) ]
+	//
+	pub(crate) use
+	{
+		std     :: { cell::RefCell                                               } ,
+		futures :: { task::LocalSpawnExt, executor::{ LocalPool, LocalSpawner, } } ,
 	};
 }
