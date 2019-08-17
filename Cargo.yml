@@ -50,7 +50,7 @@ dependencies:
   failure             : ^0.1
   futures-preview     : { version: ^0.3.0-alpha, features: [ std, compat, nightly ], default-features: false }
   log                 : ^0.4
-  once_cell           : ^0.1
+  once_cell           : { version: ^0.1, default-features: false }
   juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex }
   naja_runtime_macros : { path: macros, optional: true }
 
