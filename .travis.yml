@@ -51,15 +51,17 @@ matrix:
         - wasm-pack test  --chrome  --headless --release
 
 
-    - os    : osx
+    - os: osx
+
       script:
-        - cargo test
-        - cargo test --release
+        - cargo test --all-features
+        - cargo test --all-features --release
 
 
-    - os    : windows
+    - os: windows
+
       script:
-        - cargo test
-        - cargo test --release
+        - cargo test --all-features
+        - cargo test --all-features --release
 
 
