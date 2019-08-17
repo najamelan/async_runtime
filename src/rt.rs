@@ -52,7 +52,6 @@ std::thread_local!
 /// // as futures will be polled immediately after spawning them.
 /// //
 /// rt::run();
-///
 /// ```
 //
 pub fn init( config: RtConfig ) -> Result< (), RtErr >

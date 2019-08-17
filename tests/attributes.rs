@@ -4,13 +4,8 @@
 
 // Tested:
 //
-// - ✔ basic spawning
-// - ✔ spawn !Send task (RefCell is !Send)
-// - ✔ spawn a pinned boxed future
-// - ✔ spawn a pinned boxed_local future
-// - ✔ spawn several tasks
-// - ✔ spawn from within another task
-// - ✔ localpools on several threads
+// - ✔ set an attribute for local pool and use spawn
+// - ✔ set an attribute for thead pool and use spawn
 
 
 use
@@ -42,7 +37,7 @@ async fn async_test()
 
 
 
-// RefCell being not Send, this guarantees that it's running on the local thread
+// Spawn on threadpool
 //
 #[ rt::thread_pool ] #[test]
 //

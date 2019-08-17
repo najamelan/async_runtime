@@ -1,7 +1,14 @@
 package:
 
-  name       : naja_runtime_macros
+  # When releasing to crates.io:
+  #
+  # - Update CHANGELOG.md.
+  # - Update version numbers in install section of readme.
+  # - merge dev branch into master
+  # - create git tag
+  #
   version    : 0.1.0
+  name       : naja_runtime_macros
   authors    : [ Naja Melan <najamelan@autistici.org> ]
   edition    : '2018'
   description: Attributes for naja_async_runtime.

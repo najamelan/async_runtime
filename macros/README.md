@@ -4,3 +4,5 @@
 - on tests
 - on benchmarks
 - on wasm
+
+return types?

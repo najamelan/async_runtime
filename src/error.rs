@@ -127,12 +127,3 @@ impl From< FailContext<RtErrKind> > for RtErr
 		RtErr { inner }
 	}
 }
-
-
-// TODO: this no longer compiles. It compiles fine in thespis, but not in this crate even though this
-// file is largely copy/paste. The problem is that there is a blanket impl for Fail in failure for every
-// E: std::error::Error + 'static + Send + Sync
-//
-// impl std::error::Error for RtErr {}
-
-

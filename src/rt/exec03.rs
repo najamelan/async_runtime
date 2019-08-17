@@ -35,7 +35,7 @@ impl Exec03
 		{
 			RtConfig::Local =>
 			{
-				let local   = LocalPool ::new();
+				let local   = LocalPool::new();
 				let spawner = local.spawner();
 
 				Exec03
