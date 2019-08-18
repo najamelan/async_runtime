@@ -52,6 +52,7 @@ mod import
 	pub(crate) use
 	{
 		std     :: { cell::RefCell                                               } ,
-		futures :: { task::LocalSpawnExt, executor::{ LocalPool, LocalSpawner, } } ,
+		futures :: { task::LocalSpawnExt, executor::{ LocalPool, LocalSpawner }  } ,
+		futures :: { future::{ FutureExt, RemoteHandle }                         } ,
 	};
 }

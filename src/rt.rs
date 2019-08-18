@@ -144,6 +144,41 @@ pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtE
 }
 
 
+
+/// Spawn a future and recover the output.
+//
+pub fn spawn_handle<T: Send>( fut: impl Future< Output=T > + Send + 'static ) -> Result< RemoteHandle<T>, RtErr >
+{
+	EXEC.with( move |exec| -> Result< RemoteHandle<T>, RtErr >
+	{
+		default_init();
+
+		let (fut, handle) = fut.remote_handle();
+		exec.get().unwrap().spawn( fut )?;
+
+		Ok( handle )
+	})
+}
+
+
+
+/// Spawn a future and recover the output for `!Send` futures.
+//
+pub fn spawn_handle_local<T>( fut: impl Future< Output=T > + 'static ) -> Result< RemoteHandle<T>, RtErr >
+{
+	EXEC.with( move |exec| -> Result< RemoteHandle<T>, RtErr >
+	{
+		default_init();
+
+		let (fut, handle) = fut.remote_handle();
+		exec.get().unwrap().spawn_local( fut )?;
+
+		Ok( handle )
+	})
+}
+
+
+
 /// Run all spawned futures to completion. This is a no-op for the threadpool. However you must
 /// run this after spawning on the local pool or futures won't be polled.
 /// Do not call it from within a spawned task, or your program will hang or panic.

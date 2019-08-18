@@ -1,0 +1,23 @@
+[package]
+
+	name = "attributes"
+	version = "0.1.0"
+	authors = ["Naja Melan <najamelan@autistici.org>"]
+	edition = "2018"
+
+
+[[bin]]
+
+	name = "local"
+	path = "src/local.rs"
+
+[[bin]]
+
+	name = "pool"
+	path = "src/pool.rs"
+
+
+[dependencies]
+
+	async_runtime   = { path = "../../", features = [ "juliex" ], package = "naja_async_runtime" }
+	futures-preview = "0.3.0-alpha"
