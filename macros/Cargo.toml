@@ -17,7 +17,7 @@ version = "^1"
 pretty_assertions = "^0.6"
 
 [features]
-juliex = []
+pool = []
 
 [lib]
 proc-macro = true

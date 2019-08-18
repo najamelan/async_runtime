@@ -32,7 +32,7 @@ enum Config
 {
 	Local,
 
-	#[ cfg( feature = "juliex" ) ]
+	#[ cfg( feature = "pool" ) ]
 	//
 	Pool ,
 }
@@ -48,7 +48,7 @@ pub fn local( _args: TokenStream, item: TokenStream ) -> TokenStream
 
 
 
-#[ cfg(     feature = "juliex"  ) ]
+#[ cfg(     feature = "pool"    ) ]
 #[ cfg(not( target  = "wasm32" )) ]
 //
 #[ proc_macro_attribute ]
@@ -75,46 +75,70 @@ fn dry( item: TokenStream, cfg: Config ) -> TokenStream
 	}
 
 
+	let args  = &input.sig.inputs ;
 	let ret   = &input.sig.output ;
 	let name  = &input.sig.ident  ;
 	let body  = &input.block      ;
 	let attrs = &input.attrs      ;
 
+
+	#[ cfg(not( target = "wasm32" )) ]
+	//
 	let tokens = match cfg
 	{
 		Config::Local =>
 		{
 			quote!
 			{
-				#(#attrs)*
-				fn #name() #ret
+				#( #attrs )*
+				//
+				fn #name( #args ) #ret
 				{
-					rt::init( RtConfig::Local ).expect( "executor init" );
+					rt::init( rt::RtConfig::Local ).expect( "only init executor once per thread" );
 
-					let body = async { #body };
+					let body = async move { #body };
 
-					rt::spawn_local( body ).expect( "spawn" );
-
-					#[ cfg(not( target = "wasm32" )) ] rt::run();
+					let handle = rt::spawn_handle_local( body ).expect( "spawn" );
+					rt::run();
+					rt::block_on( handle )
 				}
 			}
 		}
 
-		#[ cfg( feature = "juliex"  ) ]
+		#[ cfg( feature = "pool"  ) ]
 		//
 		Config::Pool =>
 		{
 			quote!
 			{
 				#(#attrs)*
-				fn #name() #ret
+				fn #name( #args ) #ret
 				{
-					rt::init( RtConfig::Pool ).expect( "executor init" );
+					rt::init( rt::RtConfig::Pool ).expect( "only init executor once per thread" );
 
-					rt::block_on( async { #body } )
+					rt::block_on( async move { #body } )
 				}
 
 			}
+		}
+	};
+
+
+	#[ cfg( target = "wasm32" ) ]
+	//
+	let tokens = quote!
+	{
+		#( #attrs )*
+		//
+		fn #name( #args ) #ret
+		{
+			rt::init( rt::RtConfig::Local ).expect( "only init executor once per thread" );
+
+			let body = async move { #body };
+
+			let handle = rt::spawn_handle_local( body ).expect( "spawn" );
+			rt::run();
+			rt::block_on( handle )
 		}
 	};
 

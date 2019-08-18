@@ -51,7 +51,7 @@ required-features = ["notwasm", "juliex"]
 
 [features]
 default = ["macros"]
-juliex = ["juliex_crate", "naja_runtime_macros/juliex"]
+juliex = ["juliex_crate", "naja_runtime_macros/pool"]
 macros = ["naja_runtime_macros"]
 notwasm = []
 external_doc = []

@@ -41,7 +41,7 @@ features:
   default: [ macros ]
   macros : [ naja_runtime_macros ]
 
-  juliex : [ juliex_crate, naja_runtime_macros/juliex ]
+  juliex : [ juliex_crate, naja_runtime_macros/pool ]
 
   # only used internally, don't use
   #
