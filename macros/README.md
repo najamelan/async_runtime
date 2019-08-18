@@ -10,11 +10,8 @@ return types?
 
 TODO:
 
-- WASM support
-- WASM spawn_handle
-- run_until support?
-- double executor error on same executor or not?
 - ditch failure
+- run_until support?
 - test with dependent crates
 - release
 

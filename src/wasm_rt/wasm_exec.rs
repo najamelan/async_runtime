@@ -36,6 +36,7 @@ impl WasmExec
 		{
 			RtConfig::Local => WasmExec{ _config: config },
 			RtConfig::Pool  => panic!( "Wasm does not have threads atm. Please initiate with a localpool executor" ),
+			_               => unreachable!(),
 		}
 	}
 

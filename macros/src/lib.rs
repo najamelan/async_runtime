@@ -48,8 +48,7 @@ pub fn local( _args: TokenStream, item: TokenStream ) -> TokenStream
 
 
 
-#[ cfg(     feature = "pool"    ) ]
-#[ cfg(not( target  = "wasm32" )) ]
+#[ cfg( feature = "pool" ) ]
 //
 #[ proc_macro_attribute ]
 //
@@ -75,15 +74,14 @@ fn dry( item: TokenStream, cfg: Config ) -> TokenStream
 	}
 
 
+	let vis   = &input.vis        ;
+	let name  = &input.sig.ident  ;
 	let args  = &input.sig.inputs ;
 	let ret   = &input.sig.output ;
-	let name  = &input.sig.ident  ;
 	let body  = &input.block      ;
 	let attrs = &input.attrs      ;
 
 
-	#[ cfg(not( target = "wasm32" )) ]
-	//
 	let tokens = match cfg
 	{
 		Config::Local =>
@@ -92,15 +90,28 @@ fn dry( item: TokenStream, cfg: Config ) -> TokenStream
 			{
 				#( #attrs )*
 				//
-				fn #name( #args ) #ret
+				#vis fn #name( #args ) #ret
 				{
-					rt::init( rt::RtConfig::Local ).expect( "only init executor once per thread" );
+					match async_runtime::rt::current_rt()
+					{
+						None => async_runtime::rt::init( async_runtime::RtConfig::Local ).unwrap(),
+
+						Some(cfg) =>
+						{
+							if async_runtime::RtConfig::Local != cfg
+							{
+								panic!( async_runtime::RtErr::from( async_runtime::RtErrKind::DoubleExecutorInit ) );
+							}
+						}
+					}
 
 					let body = async move { #body };
 
-					let handle = rt::spawn_handle_local( body ).expect( "spawn" );
-					rt::run();
-					rt::block_on( handle )
+					#[ cfg(     target_arch = "wasm32"  ) ] async_runtime::rt::spawn_local( body ).expect( "spawn" );
+
+					#[ cfg(not( target_arch = "wasm32" )) ] let handle = async_runtime::rt::spawn_handle_local( body ).expect( "spawn" );
+					#[ cfg(not( target_arch = "wasm32" )) ] async_runtime::rt::run();
+					#[ cfg(not( target_arch = "wasm32" )) ] async_runtime::rt::block_on( handle )
 				}
 			}
 		}
@@ -112,33 +123,25 @@ fn dry( item: TokenStream, cfg: Config ) -> TokenStream
 			quote!
 			{
 				#(#attrs)*
-				fn #name( #args ) #ret
+				#vis fn #name( #args ) #ret
 				{
-					rt::init( rt::RtConfig::Pool ).expect( "only init executor once per thread" );
+					match async_runtime::rt::current_rt()
+					{
+						None => async_runtime::rt::init( async_runtime::RtConfig::Pool ).unwrap(),
 
-					rt::block_on( async move { #body } )
+						Some(cfg) =>
+						{
+							if async_runtime::RtConfig::Local != cfg
+							{
+								panic!( async_runtime::RtErr::from( async_runtime::RtErrKind::DoubleExecutorInit ) );
+							}
+						}
+					}
+
+					async_runtime::rt::block_on( async move { #body } )
 				}
 
 			}
-		}
-	};
-
-
-	#[ cfg( target = "wasm32" ) ]
-	//
-	let tokens = quote!
-	{
-		#( #attrs )*
-		//
-		fn #name( #args ) #ret
-		{
-			rt::init( rt::RtConfig::Local ).expect( "only init executor once per thread" );
-
-			let body = async move { #body };
-
-			let handle = rt::spawn_handle_local( body ).expect( "spawn" );
-			rt::run();
-			rt::block_on( handle )
 		}
 	};
 

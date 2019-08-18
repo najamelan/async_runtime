@@ -38,6 +38,24 @@ async fn async_test()
 
 
 
+// call an async method from a sync method
+//
+#[test]
+//
+fn call_async()
+{
+	assert_eq!( &hello_world(), "You succesfully spawned a future" );
+}
+
+
+#[ rt::local ]
+//
+async fn hello_world() -> String
+{
+	format!( "You succesfully spawned a future" )
+}
+
+
 // Spawn on threadpool in a test
 //
 #[ rt::thread_pool ] #[test]

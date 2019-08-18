@@ -6,12 +6,16 @@ pub enum RtConfig
 {
 	/// A threadpool. Currently [juliex](https://github.com/withoutboats/juliex), but might change in the future.
 	//
-	Pool  ,
+	Pool,
 
 	/// An executor that runs futures on the current thread, capable of running `!`[`Send`] futures. Currently uses
 	/// `futures::executor::LocalPool`.
 	//
-	Local ,
+	Local,
+
+	/// Protect against adding other options being breaking changes
+	//
+	__Nonexhaustive,
 }
 
 

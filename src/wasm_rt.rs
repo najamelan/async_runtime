@@ -11,9 +11,8 @@ pub(crate) mod wasm_exec;
 
 pub use
 {
-	naja_runtime_macros :: *        ,
-	wasm_exec           :: *        ,
-	crate               :: RtConfig ,
+	naja_runtime_macros :: local ,
+	wasm_exec           :: *     ,
 };
 
 

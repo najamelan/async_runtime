@@ -47,6 +47,8 @@ impl Exec03
 			}
 
 			RtConfig::Pool{..} => Exec03{ config, local: None, spawner: None },
+
+			_ => unreachable!(),
 		}
 	}
 
@@ -70,6 +72,7 @@ impl Exec03
 		{
 			RtConfig::Local    => self.local.as_ref().unwrap().borrow_mut().run(),
 			RtConfig::Pool{..} => {}, // nothing to be done as juliex polls immediately
+			_                  => unreachable!(),
 		}
 	}
 
@@ -112,6 +115,8 @@ impl Exec03
 				//
 				Err( RtErrKind::Spawn{ context: "async_runtime was compiled without the juliex feature".into() }.into() )
 			}
+
+			_ => unreachable!(),
 		}
 	}
 
@@ -140,6 +145,8 @@ impl Exec03
 
 
 			RtConfig::Pool{..} => Err( RtErrKind::Spawn{ context: "Exec03 spawn_local when initialized executor is the threadpool. Use `spawn` to spawn on the threadpool or initialize the default executor for the thread to be the thread local executor".into() }.into() ),
+
+			_ => unreachable!(),
 		}
 	}
 }

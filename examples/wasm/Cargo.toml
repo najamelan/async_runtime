@@ -3,9 +3,8 @@
 wasm-bindgen = "^0.2"
 
 [dependencies.async_runtime]
-default-features = false
 package = "naja_async_runtime"
-version = "^0.1"
+path = "../../"
 
 [dependencies.web-sys]
 features = ["console", "Document", "Element", "HtmlElement", "Node", "Window"]

@@ -19,7 +19,7 @@ dependencies:
 
   # not loading default features keeps us from depending on juliex which is not used on wasm
   #
-  async_runtime   : { version: ^0.1, default-features: false, package: naja_async_runtime }
+  async_runtime   : { path: ../../, package: naja_async_runtime }
   wasm-bindgen    : ^0.2
 
   web-sys:

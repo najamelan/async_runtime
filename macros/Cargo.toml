@@ -41,13 +41,3 @@ all-features = true
 [profile]
 [profile.release]
 codegen-units = 1
-
-[target]
-[target."cfg(target_arch = \"wasm32\")"]
-[target."cfg(target_arch = \"wasm32\")".dependencies]
-[target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
-features = ["futures_0_3"]
-version = "^0.3"
-
-[target."cfg(target_arch = \"wasm32\")".dev-dependencies]
-wasm-bindgen-test = "^0.2"
