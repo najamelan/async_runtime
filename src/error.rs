@@ -2,57 +2,27 @@ use crate::{ import::* };
 
 
 /// The error type for errors happening in `async_runtime`.
-///
-/// Use [`RtErr::kind()`] to know which kind of error happened. [RtErrKind] implements [Eq],
-/// so you can do the following if all you want to know is the kind of error:
-///
-/// ```ignore
-/// use async_runtime::*;
-///
-/// rt::init( RtConfig::Local ).expect( "Set default executor" );
-///
-/// match rt::init( RtConfig::Pool )
-/// {
-///    Err(e) =>
-///    {
-///       if let RtErrKind::DoubleExecutorInit = e.kind()
-///       {
-///          println!( "{}", e );
-///       }
-///
-///       // This also works:
-///       //
-///       match e.kind()
-///       {
-///          RtErrKind::DoubleExecutorInit => println!( "{}", e ),
-///          _ => {},
-///       }
-///    },
-///
-///    Ok(_) => {}
-/// }
-/// ```
 //
 #[ derive( Debug ) ]
 //
 pub struct RtErr
 {
-	inner: FailContext<RtErrKind>,
+	kind: RtErrKind,
 }
+
+impl Error for RtErr {}
 
 
 
 /// The different kind of errors that can happen when you use the `async_runtime` API.
 //
-#[ derive( Clone, PartialEq, Eq, Debug, Fail ) ]
+#[ derive( Copy, Clone, PartialEq, Eq, Debug ) ]
 //
 pub enum RtErrKind
 {
 	/// You should not call [rt::init](crate::rt::init) twice on the same thread. In general if you are a library
 	/// author, you should not call it unless you started the thread. Otherwise just call [rt::spawn](crate::rt::spawn)
 	/// and let the client code decide which executor shall be used.
-	//
-	#[ fail( display = "DoubleExecutorInit: Cannot initialize global executor twice" ) ]
 	//
 	DoubleExecutorInit,
 
@@ -66,64 +36,62 @@ pub enum RtErrKind
 	/// Note that even though certain executors are infallible right now, that might change in the
 	/// future, notably WASM is bound to change quite alot over time.
 	//
-	#[ fail( display = "Spawn: Failed to spawn a future in: {}", context ) ]
+	Spawn,
+
+	/// When some code in your project (possibly a dependency) uses spawn_local because the future they spawn is
+	/// `!Send`, you must use the localpool for the thread in which this code is run. It's simply not possible
+	/// to spawn a `!Send` future on a threadpool.
 	//
-	Spawn
-	{
-		/// Add contextual information to which future failed to spawn.
-		///
-		context: String
-	},
+	SpawnLocalOnThreadPool,
 }
 
 
-
-impl Fail for RtErr
+impl fmt::Display for RtErrKind
 {
-	fn cause( &self ) -> Option< &dyn Fail >
+	fn fmt( &self, f: &mut fmt::Formatter<'_> ) -> fmt::Result
 	{
-		self.inner.cause()
-	}
-
-	fn backtrace( &self ) -> Option< &Backtrace >
-	{
-		self.inner.backtrace()
+		match self
+		{
+			Self::DoubleExecutorInit     => fmt::Display::fmt( "DoubleExecutorInit: Cannot initialize global executor twice.", f ) ,
+			Self::Spawn                  => fmt::Display::fmt( "Spawn: Failed to spawn a future."                            , f ) ,
+			Self::SpawnLocalOnThreadPool => fmt::Display::fmt( "Spawn: You can not spawn `!Send` futures on a thread pool. If your feature is `Send`, use `rt::spawn`, otherwise initialize this thread with a Local executor.", f ) ,
+		}
 	}
 }
-
 
 
 impl fmt::Display for RtErr
 {
 	fn fmt( &self, f: &mut fmt::Formatter<'_> ) -> fmt::Result
 	{
-		fmt::Display::fmt( &self.inner, f )
+		write!( f, "async_runtime::RtErr: {}", &self.kind )
 	}
 }
 
 
 impl RtErr
 {
+	/// Create a new error from a specific kind.
+	//
+	pub fn new( kind: RtErrKind ) -> Self
+	{
+		RtErr { kind }
+	}
+
+
 	/// Allows matching on the error kind
 	//
 	pub fn kind( &self ) -> &RtErrKind
 	{
-		self.inner.get_context()
+		&self.kind
 	}
 }
+
 
 impl From<RtErrKind> for RtErr
 {
 	fn from( kind: RtErrKind ) -> RtErr
 	{
-		RtErr { inner: FailContext::new( kind ) }
-	}
-}
-
-impl From< FailContext<RtErrKind> > for RtErr
-{
-	fn from( inner: FailContext<RtErrKind> ) -> RtErr
-	{
-		RtErr { inner }
+		RtErr { kind }
 	}
 }

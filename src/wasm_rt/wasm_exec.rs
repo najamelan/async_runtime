@@ -9,7 +9,7 @@ use
 //
 #[ derive( Debug ) ]
 //
-pub struct WasmExec
+pub(crate) struct WasmExec
 {
 	_config: RtConfig
 }

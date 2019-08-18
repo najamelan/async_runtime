@@ -6,6 +6,8 @@ pub enum RtConfig
 {
 	/// A threadpool. Currently [juliex](https://github.com/withoutboats/juliex), but might change in the future.
 	//
+	#[ cfg( feature = "juliex" ) ]
+	//
 	Pool,
 
 	/// An executor that runs futures on the current thread, capable of running `!`[`Send`] futures. Currently uses

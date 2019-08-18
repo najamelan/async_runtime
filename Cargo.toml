@@ -7,14 +7,9 @@ status = "actively-developed"
 repository = "najamelan/async_runtime"
 
 [dependencies]
-[dependencies.failure]
-default-features = false
-features = ["derive"]
-version = "^0.1"
-
 [dependencies.futures-preview]
 default-features = false
-features = ["std", "compat"]
+features = ["std"]
 version = "^0.3.0-alpha"
 
 [dependencies.juliex_crate]
@@ -31,7 +26,6 @@ default-features = false
 version = "^0.1"
 
 [dev-dependencies]
-log = "^0.4"
 pretty_assertions = "^0.6"
 
 [[example]]

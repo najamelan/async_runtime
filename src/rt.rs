@@ -5,17 +5,19 @@
 //! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 //!
 
-pub(crate) mod exec03;
+mod exec03;
 
 pub use
 {
-	naja_runtime_macros :: *        ,
-	exec03              :: *        ,
-	crate               :: RtConfig ,
+	naja_runtime_macros :: * ,
 };
 
 
-use crate :: { import::*, RtErr, RtErrKind };
+use
+{
+	crate  :: { import::*, RtConfig, RtErr, RtErrKind } ,
+	exec03 :: { Exec03                                } ,
+};
 
 
 std::thread_local!

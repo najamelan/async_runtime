@@ -54,8 +54,7 @@ features:
 
 dependencies:
 
-  failure             : { version: ^0.1, default-features: false, features: [ derive ] }
-  futures-preview     : { version: ^0.3.0-alpha, features: [ std, compat, nightly ], default-features: false }
+  futures-preview     : { version: ^0.3.0-alpha, features: [std], default-features: false }
   once_cell           : { version: ^0.1, default-features: false }
   juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex }
   naja_runtime_macros : { path: macros, optional: true }
@@ -63,8 +62,8 @@ dependencies:
 
 dev-dependencies:
 
-  log               : ^0.4
   pretty_assertions : ^0.6
+  # log               : ^0.4
   # flexi_logger      : ^0.11
 
 

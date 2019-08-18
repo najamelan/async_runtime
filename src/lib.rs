@@ -1,8 +1,8 @@
 // See: https://github.com/rust-lang/rust/issues/44732#issuecomment-488766871
 //!
-#![cfg_attr( feature = "external_doc", feature(external_doc)         )]
-#![cfg_attr( feature = "external_doc", doc(include = "../README.md") )]
-//!
+#![ cfg_attr( feature = "external_doc", feature(external_doc)         ) ]
+#![ cfg_attr( feature = "external_doc", doc(include = "../README.md") ) ]
+
 
 
 
@@ -21,7 +21,6 @@
 
 
 #[ cfg(not( target_arch = "wasm32" )) ] pub mod rt                                       ;
-#[ cfg(not( target_arch = "wasm32" )) ] pub use { rt::exec03::* }                        ;
 
 #[ cfg(     target_arch = "wasm32" )  ] pub mod wasm_rt                                  ;
 #[ cfg(     target_arch = "wasm32" )  ] pub use { wasm_rt::wasm_exec::*, wasm_rt as rt } ;
@@ -41,9 +40,8 @@ mod import
 {
 	pub(crate) use
 	{
-		once_cell :: { unsync::OnceCell                        } ,
-		failure   :: { Backtrace, Fail, Context as FailContext } ,
-		std       :: { fmt, future::Future                     } ,
+		once_cell :: { unsync::OnceCell                  } ,
+		std       :: { fmt, future::Future, error::Error } ,
 	};
 
 

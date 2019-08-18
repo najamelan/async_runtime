@@ -41,6 +41,20 @@ fn shutdown()
 //
 #[test]
 //
+fn double_init_local()
+{
+	             rt::init( RtConfig::Local ).expect( "no double executor init" );
+	let result = rt::init( RtConfig::Local );
+
+	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
+}
+
+
+
+// Trigger DoubleExecutorInit with 2 threadpool executors.
+//
+#[test]
+//
 fn double_init_pool()
 {
 	             rt::init( RtConfig::Pool ).expect( "no double executor init" );

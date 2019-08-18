@@ -6,9 +6,9 @@ use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 //
 #[ derive( Debug ) ]
 //
-pub struct Exec03
+pub(crate) struct Exec03
 {
-	config : RtConfig                          ,
+	config : RtConfig                        ,
 	local  : Option<RefCell< LocalPool    >> ,
 	spawner: Option<RefCell< LocalSpawner >> ,
 }
@@ -46,7 +46,9 @@ impl Exec03
 				}
 			}
 
-			RtConfig::Pool{..} => Exec03{ config, local: None, spawner: None },
+			#[ cfg( feature = "juliex" ) ]
+			//
+			RtConfig::Pool => Exec03{ config, local: None, spawner: None },
 
 			_ => unreachable!(),
 		}
@@ -70,9 +72,13 @@ impl Exec03
 	{
 		match self.config
 		{
-			RtConfig::Local    => self.local.as_ref().unwrap().borrow_mut().run(),
-			RtConfig::Pool{..} => {}, // nothing to be done as juliex polls immediately
-			_                  => unreachable!(),
+			RtConfig::Local => self.local.as_ref().unwrap().borrow_mut().run(),
+
+			#[ cfg( feature = "juliex" ) ]
+			//
+			RtConfig::Pool  => {}, // nothing to be done as juliex polls immediately
+
+			_               => unreachable!(),
 		}
 	}
 
@@ -98,22 +104,15 @@ impl Exec03
 
 				self.spawner.as_ref().unwrap().borrow_mut().spawn_local( fut )
 
-			   	.map_err( |_| RtErrKind::Spawn{ context: "Futures 0.3 LocalPool spawn".into() }.into() ),
+			   	.map_err( |_| RtErrKind::Spawn.into() ),
 
 
-
+			#[ cfg( feature = "juliex" ) ]
+			//
 			RtConfig::Pool =>
 			{
-				#[ cfg( feature = "juliex" ) ]
-				//
-				{
-					juliex_crate::spawn( fut );
-					Ok(())
-				}
-
-				#[ cfg( not( feature = "juliex" ) ) ]
-				//
-				Err( RtErrKind::Spawn{ context: "async_runtime was compiled without the juliex feature".into() }.into() )
+				juliex_crate::spawn( fut );
+				Ok(())
 			}
 
 			_ => unreachable!(),
@@ -125,13 +124,20 @@ impl Exec03
 	/// be created with a local pool configuration. This will err if you try to call this on an executor
 	/// set up with a threadpool.
 	///
+	/// Note that this will not complain if you call this with a `Send` future, but there is no reason to
+	/// do so, and it will put restrictions on users of your code, as they will no longer be able to run
+	/// your code on a thread that spawns on a threadpool.
+	///
 	/// ### Errors
 	///
-	/// - When using `RtConfig::Pool` (currently juliex), this method will return a [RtErrKind::Spawn](crate::RtErrKind::Spawn).
+	/// - When using `RtConfig::Pool` (currently juliex), this method will return an error of kind [RtErrKind::SpawnLocalOnThreadPool](crate::RtErrKind::SpawnLocalOnThreadPool).
 	///   Since the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
 	/// - When using `RtConfig::Local` (currently futures 0.3 LocalPool), this method can return a spawn
-	/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
-	/// You can call [rt::run](crate::rt::run) and spawn again afterwards.
+	/// error if the executor has been shut down. `spawn_local` will return an error of kind
+	///  [RtErrKind::Spawn](crate::RtErrKind::Spawn).
+	///
+	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
+	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
 	//
 	pub fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
 	{
@@ -141,10 +147,12 @@ impl Exec03
 
 				self.spawner.as_ref().unwrap().borrow_mut().spawn_local( fut )
 
-			   	.map_err( |_| RtErrKind::Spawn{ context: "Futures 0.3 LocalPool spawn".into() }.into() ),
+			   	.map_err( |_| RtErrKind::Spawn.into() ),
 
 
-			RtConfig::Pool{..} => Err( RtErrKind::Spawn{ context: "Exec03 spawn_local when initialized executor is the threadpool. Use `spawn` to spawn on the threadpool or initialize the default executor for the thread to be the thread local executor".into() }.into() ),
+			#[ cfg( feature = "juliex" ) ]
+			//
+			RtConfig::Pool => Err( RtErrKind::SpawnLocalOnThreadPool.into() ),
 
 			_ => unreachable!(),
 		}
