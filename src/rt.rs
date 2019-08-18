@@ -6,12 +6,16 @@
 //!
 
 pub(crate) mod exec03;
-pub use exec03::*;
 
-pub use naja_runtime_macros::*;
+pub use
+{
+	naja_runtime_macros :: *        ,
+	exec03              :: *        ,
+	crate               :: RtConfig ,
+};
 
 
-use crate :: { import::*, RtConfig, RtErr, RtErrKind };
+use crate :: { import::*, RtErr, RtErrKind };
 
 
 std::thread_local!

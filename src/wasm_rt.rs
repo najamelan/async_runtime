@@ -8,7 +8,13 @@ use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 
 
 pub(crate) mod wasm_exec;
-pub use wasm_exec::*;
+
+pub use
+{
+	naja_runtime_macros :: *        ,
+	wasm_exec           :: *        ,
+	crate               :: RtConfig ,
+};
 
 
 thread_local!
