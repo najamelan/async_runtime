@@ -16,9 +16,6 @@ version = "^1"
 [dev-dependencies]
 pretty_assertions = "^0.6"
 
-[features]
-pool = []
-
 [lib]
 proc-macro = true
 

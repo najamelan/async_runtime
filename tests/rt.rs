@@ -1,7 +1,7 @@
 #![ cfg(not( target_arch = "wasm32" )) ]
 
 // Tested:
-//
+// - ✔ Verify a default config get's chosen when no features are manually enabled
 // - ✔ current_rt for localpool
 // - ✔ current_rt for threadpool
 // - ✔ current_rt for after spawning it should be a threadpool
@@ -18,15 +18,33 @@ use
 
 
 
+
+// Verifies that a default executor is chosen when no features are enabled.
+//
+#[ cfg(not( feature = "juliex" ))]
+//
+#[test]
+//
+fn default_config()
+{
+	assert!( rt::current_rt().is_none()  );
+
+	rt::spawn( async {} ).expect( "spawn" );
+
+	assert_eq!( Some( rt::Config::LocalPool ), rt::current_rt() );
+}
+
+
+
 #[test]
 //
 fn localpool()
 {
 	assert_eq!( None, rt::current_rt() );
 
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
-	assert_eq!( Some( RtConfig::Local ), rt::current_rt() );
+	assert_eq!( Some( rt::Config::LocalPool ), rt::current_rt() );
 }
 
 
@@ -38,9 +56,9 @@ fn thread_pool()
 {
 	assert_eq!( None, rt::current_rt() );
 
-	rt::init( RtConfig::Pool ).expect( "no double executor init" );
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
 
-	assert_eq!( Some( RtConfig::Pool ), rt::current_rt() );
+	assert_eq!( Some( rt::Config::Juliex ), rt::current_rt() );
 }
 
 
@@ -55,7 +73,7 @@ fn spawn()
 
 	rt::spawn( async {} ).expect( "spawn" );
 
-	assert_eq!( Some( RtConfig::Pool ), rt::current_rt() );
+	assert_eq!( Some( rt::Config::Juliex ), rt::current_rt() );
 }
 
 

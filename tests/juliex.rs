@@ -3,12 +3,12 @@
 
 // Tested:
 //
-// - ✔ basic spawning using default config
-// - ✔ basic spawning specifying the config
-// - ✔ spawn a pinned boxed future
-// - ✔ spawn several tasks
-// - ✔ spawn from within another task
-// - ✔ verify that it's actually running on a threadpool and not on a LocalPool
+// ✔ basic spawning using default config
+// ✔ basic spawning specifying the config
+// ✔ spawn a pinned boxed future
+// ✔ spawn several tasks
+// ✔ spawn from within another task
+// ✔ verify that it's actually running on a threadpool and not on a LocalPool
 
 
 use
@@ -49,7 +49,7 @@ fn spawn_config()
 {
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( RtConfig::Pool ).expect( "no double executor init" );
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
 
 	let task = async move
 	{

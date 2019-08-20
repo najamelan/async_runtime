@@ -10,17 +10,23 @@
 
 use
 {
-	async_runtime :: { *                     } ,
-	std           :: { rc::Rc, cell::RefCell, sync::{ Arc, Mutex }, process::Command, path::Path } ,
-	futures       :: { FutureExt             } ,
+	std           :: { rc::Rc, cell::RefCell, process::Command, path::Path } ,
+	async_runtime :: { rt                                                  } ,
+	futures       :: { FutureExt                                           } ,
 };
+
+#[ cfg( feature = "juliex" ) ]
+//
+use std::sync::{ Arc, Mutex };
 
 
 
 // Spawn local in a test
 // RefCell being not Send, this guarantees that it's running on the local thread
 //
-#[ rt::local ] #[test]
+#[ cfg( feature = "localpool" ) ]
+//
+#[ rt::localpool ] #[test]
 //
 async fn async_test()
 {
@@ -48,7 +54,9 @@ fn call_async()
 }
 
 
-#[ rt::local ]
+#[ cfg( feature = "localpool" ) ]
+//
+#[ rt::localpool ]
 //
 async fn hello_world() -> String
 {
@@ -58,7 +66,9 @@ async fn hello_world() -> String
 
 // Spawn on threadpool in a test
 //
-#[ rt::thread_pool ] #[test]
+#[ cfg( feature = "juliex" ) ]
+//
+#[ rt::juliex ] #[test]
 //
 async fn attr_on_threadpool()
 {

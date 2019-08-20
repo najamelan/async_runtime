@@ -1,10 +1,10 @@
 //! The purpose of this test is to verify that:
 //!
-//! - the code compiles
-//! - we can spawn tasks
-//! - spawned tasks are actually on a single thread
-//! - we can await in main
-//! - we can return a Result from main
+//! ✔ the code compiles
+//! ✔ we can spawn tasks
+//! ✔ spawned tasks are actually on a single thread
+//! ✔ we can await in main
+//! ✔ we can return a Result from main
 //
 #![ feature( async_await, optin_builtin_traits ) ]
 
@@ -28,7 +28,7 @@ async fn substract( w: &mut WillMove )
 
 
 
-#[ rt::thread_pool ]
+#[ rt::juliex ]
 //
 async fn main() -> Result< (), () >
 {

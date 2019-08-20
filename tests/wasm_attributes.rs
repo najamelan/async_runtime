@@ -19,7 +19,7 @@ use
 wasm_bindgen_test_configure!(run_in_browser);
 
 
-#[ rt::local         ]
+#[ rt::bindgen       ]
 #[ wasm_bindgen_test ]
 //
 async fn attribute_test_method()
@@ -31,7 +31,7 @@ async fn attribute_test_method()
 
 // As wasm has no threads, verify what happens on a possible double executor init.
 //
-#[ rt::local         ]
+#[ rt::bindgen       ]
 #[ wasm_bindgen_test ]
 //
 async fn double_executor_init()

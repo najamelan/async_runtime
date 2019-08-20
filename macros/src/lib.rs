@@ -18,6 +18,7 @@
 )]
 
 
+
 extern crate proc_macro;
 
 
@@ -25,53 +26,20 @@ use
 {
 	proc_macro :: { TokenStream } ,
 	quote      :: { quote       } ,
+	syn        :: { ItemFn      } ,
 };
 
 
-enum Config
-{
-	Local,
-
-	#[ cfg( feature = "pool" ) ]
-	//
-	Pool ,
-}
-
-
 
 #[ proc_macro_attribute ]
 //
-pub fn local( _args: TokenStream, item: TokenStream ) -> TokenStream
+pub fn localpool( _args: TokenStream, item: TokenStream ) -> TokenStream
 {
-	dry( item, Config::Local )
-}
-
-
-
-#[ cfg( feature = "pool" ) ]
-//
-#[ proc_macro_attribute ]
-//
-pub fn thread_pool( _args: TokenStream, item: TokenStream ) -> TokenStream
-{
-	dry( item, Config::Pool )
-}
-
-
-
-// Actual implementation
-//
-fn dry( item: TokenStream, cfg: Config ) -> TokenStream
-{
-	let input = syn::parse_macro_input!( item as syn::ItemFn );
-
-
-	if input.sig.asyncness.is_none()
+	let input = match parse( item )
 	{
-		let msg = "Functions tagged with the async runtime still require the async keyword.";
-
-		return syn::Error::new_spanned( input.sig.fn_token, msg ).to_compile_error().into();
-	}
+		Ok (i) => i                                  ,
+		Err(e) => return e.to_compile_error().into() ,
+	};
 
 
 	let vis   = &input.vis        ;
@@ -81,69 +49,111 @@ fn dry( item: TokenStream, cfg: Config ) -> TokenStream
 	let body  = &input.block      ;
 	let attrs = &input.attrs      ;
 
-
-	let tokens = match cfg
+	let tokens = quote!
 	{
-		Config::Local =>
-		{
-			quote!
-			{
-				#( #attrs )*
-				//
-				#vis fn #name( #args ) #ret
-				{
-					match async_runtime::rt::current_rt()
-					{
-						None => async_runtime::rt::init( async_runtime::RtConfig::Local ).unwrap(),
-
-						Some(cfg) =>
-						{
-							if async_runtime::RtConfig::Local != cfg
-							{
-								panic!( async_runtime::RtErr::from( async_runtime::RtErrKind::DoubleExecutorInit ) );
-							}
-						}
-					}
-
-					let body = async move { #body };
-
-					#[ cfg(     target_arch = "wasm32"  ) ] async_runtime::rt::spawn_local( body ).expect( "spawn" );
-
-					#[ cfg(not( target_arch = "wasm32" )) ] let handle = async_runtime::rt::spawn_handle_local( body ).expect( "spawn" );
-					#[ cfg(not( target_arch = "wasm32" )) ] async_runtime::rt::run();
-					#[ cfg(not( target_arch = "wasm32" )) ] async_runtime::rt::block_on( handle )
-				}
-			}
-		}
-
-		#[ cfg( feature = "pool"  ) ]
+		#( #attrs )*
 		//
-		Config::Pool =>
+		#vis fn #name( #args ) #ret
 		{
-			quote!
-			{
-				#(#attrs)*
-				#vis fn #name( #args ) #ret
-				{
-					match async_runtime::rt::current_rt()
-					{
-						None => async_runtime::rt::init( async_runtime::RtConfig::Pool ).unwrap(),
+			async_runtime::rt::init_allow_same( async_runtime::rt::Config::LocalPool ).expect( "no double executor init" );
 
-						Some(cfg) =>
-						{
-							if async_runtime::RtConfig::Local != cfg
-							{
-								panic!( async_runtime::RtErr::from( async_runtime::RtErrKind::DoubleExecutorInit ) );
-							}
-						}
-					}
+			let body = async move { #body };
 
-					async_runtime::rt::block_on( async move { #body } )
-				}
-
-			}
+			let handle = async_runtime::rt::spawn_handle_local( body ).expect( "spawn from proc macro attribute" );
+			async_runtime::rt::run();
+			async_runtime::rt::block_on( handle )
 		}
 	};
 
 	tokens.into()
 }
+
+
+
+#[ proc_macro_attribute ]
+//
+pub fn juliex( _args: TokenStream, item: TokenStream ) -> TokenStream
+{
+	let input = match parse( item )
+	{
+		Ok (i) => i                                  ,
+		Err(e) => return e.to_compile_error().into() ,
+	};
+
+
+	let vis   = &input.vis        ;
+	let name  = &input.sig.ident  ;
+	let args  = &input.sig.inputs ;
+	let ret   = &input.sig.output ;
+	let body  = &input.block      ;
+	let attrs = &input.attrs      ;
+
+	let tokens = quote!
+	{
+		#(#attrs)*
+		//
+		#vis fn #name( #args ) #ret
+		{
+			async_runtime::rt::init_allow_same( async_runtime::rt::Config::Juliex ).expect( "no double executor init" );
+
+			async_runtime::rt::block_on( async move { #body } )
+		}
+	};
+
+	tokens.into()
+}
+
+
+
+#[ proc_macro_attribute ]
+//
+pub fn bindgen( _args: TokenStream, item: TokenStream ) -> TokenStream
+{
+	let input = match parse( item )
+	{
+		Ok (i) => i                                  ,
+		Err(e) => return e.to_compile_error().into() ,
+	};
+
+	let vis   = &input.vis        ;
+	let name  = &input.sig.ident  ;
+	let args  = &input.sig.inputs ;
+	let ret   = &input.sig.output ;
+	let body  = &input.block      ;
+	let attrs = &input.attrs      ;
+
+	let tokens = quote!
+	{
+		#( #attrs )*
+		//
+		#vis fn #name( #args ) #ret
+		{
+			async_runtime::rt::init_allow_same( async_runtime::rt::Config::Bindgen ).expect( "no double executor init" );
+
+			let body = async move { #body };
+
+			async_runtime::rt::spawn_local( body ).expect( "spawn from proc macro attribute" );
+		}
+	};
+
+	tokens.into()
+}
+
+
+
+fn parse( item: TokenStream ) -> Result< ItemFn, syn::Error>
+{
+	let input: ItemFn = syn::parse( item )?;
+
+
+	if input.sig.asyncness.is_none()
+	{
+		let msg = "Functions tagged with the async runtime still require the async keyword.";
+
+		return Err( syn::Error::new_spanned( input.sig.fn_token, msg ) )?;
+	}
+
+
+	Ok( input )
+}
+

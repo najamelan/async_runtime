@@ -20,28 +20,19 @@
 )]
 
 
-#[ cfg(not( target_arch = "wasm32" )) ] pub mod rt                                       ;
+pub mod rt   ;
+    mod error;
 
-#[ cfg(     target_arch = "wasm32" )  ] pub mod wasm_rt                                  ;
-#[ cfg(     target_arch = "wasm32" )  ] pub use { wasm_rt::wasm_exec::*, wasm_rt as rt } ;
-
-
-mod error;
-mod rt_config;
-
-pub use
-{
-	error     :: * ,
-	rt_config :: * ,
-};
+pub use error::*;
 
 
 mod import
 {
 	pub(crate) use
 	{
-		once_cell :: { unsync::OnceCell                  } ,
-		std       :: { fmt, future::Future, error::Error } ,
+		once_cell :: { unsync::OnceCell                       } ,
+		std       :: { cfg, fmt, future::Future, error::Error } ,
+		futures   :: { future::{ FutureExt, RemoteHandle }    } ,
 	};
 
 
@@ -49,8 +40,24 @@ mod import
 	//
 	pub(crate) use
 	{
-		std     :: { cell::RefCell                                               } ,
-		futures :: { task::LocalSpawnExt, executor::{ LocalPool, LocalSpawner }  } ,
-		futures :: { future::{ FutureExt, RemoteHandle }                         } ,
+		std     :: { cell::RefCell                                                              } ,
+		futures :: { task::LocalSpawnExt, executor::{ LocalPool as FutLocalPool, LocalSpawner } } ,
+	};
+
+
+	#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ]
+	//
+	pub(crate) use
+	{
+		wasm_bindgen_futures :: { futures_0_3::spawn_local } ,
+	};
+
+
+	#[ cfg( feature = "juliex" ) ]
+	//
+	pub(crate) use
+	{
+		std       :: { sync::atomic::{ AtomicBool, Ordering } } ,
+		once_cell :: { sync::OnceCell as SyncOnceCell         } ,
 	};
 }

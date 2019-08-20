@@ -22,8 +22,8 @@ wasm_bindgen_test_configure!(run_in_browser);
 //
 fn double_init()
 {
-	             rt::init( RtConfig::Local ).expect( "no double executor init" );
-	let result = rt::init( RtConfig::Local );
+	             rt::init( rt::Config::Bindgen ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::Bindgen );
 
 	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }

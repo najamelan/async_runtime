@@ -9,7 +9,7 @@ use
 	futures       :: { future::{ FutureExt, join_all }            } ,
 };
 
-#[ rt::thread_pool ]
+#[ rt::juliex ]
 //
 async fn main()
 {

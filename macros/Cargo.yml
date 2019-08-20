@@ -34,11 +34,6 @@ lib:
   proc-macro: true
 
 
-features:
-
-  pool: []
-
-
 dependencies:
 
   syn        : { version: ^1, features: [ full ] }

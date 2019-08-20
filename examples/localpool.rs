@@ -7,7 +7,7 @@ use
 };
 
 
-#[ rt::local ]
+#[ rt::localpool ]
 //
 async fn main()
 {

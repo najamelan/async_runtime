@@ -4,12 +4,12 @@
 //
 // Tested:
 //
-// - ✔ basic spawning
-// - ✔ spawn a future that isn't Send
-// - ✔ spawn a boxed       future
-// - ✔ spawn a boxed_local future
-// - ✔ spawn several
-// - ✔ spawn from within other task
+// ✔ basic spawning
+// ✔ spawn a future that isn't Send
+// ✔ spawn a boxed       future
+// ✔ spawn a boxed_local future
+// ✔ spawn several
+// ✔ spawn from within other task
 
 
 use
@@ -30,12 +30,12 @@ fn basic_spawn()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
 
 
 	let task = async move
 	{
-		tx.send( 1 ).expect( "send on channel" );
+		tx.send( 1u8 ).expect( "send on channel" );
 	};
 
 	rt::spawn( task ).expect( "Spawn task" );
@@ -43,7 +43,7 @@ fn basic_spawn()
 
 	rt::spawn( async move
 	{
-		assert_eq!( 1, rx.await.expect( "wait on channel" ) );
+		assert_eq!( 1u8, rx.await.expect( "wait on channel" ) );
 
 	}).expect( "spawn assert" )
 }
@@ -58,7 +58,7 @@ fn spawn_not_send()
 	let num2    = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
 
 
 	let task = async move
@@ -86,12 +86,12 @@ fn spawn_boxed()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
 
 
 	let task = async move
 	{
-		tx.send( 3 ).expect( "send on channel" );
+		tx.send( 3u8 ).expect( "send on channel" );
 
 	}.boxed();
 
@@ -100,7 +100,7 @@ fn spawn_boxed()
 
 	rt::spawn( async move
 	{
-		assert_eq!( 3, rx.await.expect( "wait on channel" ) );
+		assert_eq!( 3u8, rx.await.expect( "wait on channel" ) );
 
 	}).expect( "spawn assert" )
 }
@@ -113,12 +113,12 @@ fn spawn_boxed_local()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
 
 
 	let task = async move
 	{
-		tx.send( 4 ).expect( "send on channel" );
+		tx.send( 4u8 ).expect( "send on channel" );
 
 	}.boxed_local();
 
@@ -127,7 +127,7 @@ fn spawn_boxed_local()
 
 	rt::spawn_local( async move
 	{
-		assert_eq!( 4, rx.await.expect( "wait on channel" ) );
+		assert_eq!( 4u8, rx.await.expect( "wait on channel" ) );
 
 	}).expect( "spawn assert" )
 }
@@ -141,19 +141,19 @@ fn several()
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
 
 
 	let task = async move
 	{
-		tx2.send  ( 4 + rx.await.expect( "wait channel" ) as u8 )
+		tx2.send  ( 4u8 + rx.await.expect( "wait channel" ) as u8 )
 		   .expect( "send on channel" )
 		;
 	};
 
 	let task2 = async move
 	{
-		tx.send( 1 ).expect( "send on channel" );
+		tx.send( 1u8 ).expect( "send on channel" );
 	};
 
 	rt::spawn( task  ).expect( "Spawn task"  );
@@ -161,7 +161,7 @@ fn several()
 
 	rt::spawn( async move
 	{
-		assert_eq!( 5, rx2.await.expect( "wait on channel" ) as u8 );
+		assert_eq!( 5u8, rx2.await.expect( "wait on channel" ) as u8 );
 
 	}).expect( "Spawn assert" );
 }
@@ -175,18 +175,18 @@ fn within()
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( RtConfig::Local ).expect( "no double executor init" ); }
+	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
 
 
 	let task = async move
 	{
-		tx2.send  ( 5 + rx.await.expect( "wait channel" ) as u8 )
+		tx2.send  ( 5u8 + rx.await.expect( "wait channel" ) as u8 )
 		   .expect( "send on channel" )
 		;
 
 		let task2 = async move
 		{
-			tx.send( 2 ).expect( "send on channel" );
+			tx.send( 2u8 ).expect( "send on channel" );
 		};
 
 		rt::spawn( task2 ).expect( "Spawn task2" );
@@ -197,7 +197,7 @@ fn within()
 
 	rt::spawn( async move
 	{
-		assert_eq!( 7, rx2.await.expect( "wait on channel" )as u8 );
+		assert_eq!( 7u8, rx2.await.expect( "wait on channel" )as u8 );
 
 	}).expect( "Spawn assert" );
 }

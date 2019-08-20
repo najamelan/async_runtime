@@ -39,13 +39,15 @@ path = "examples/localpool.rs"
 required-features = ["notwasm"]
 
 [[example]]
-name = "threadpool"
-path = "examples/threadpool.rs"
+name = "juliex"
+path = "examples/juliex.rs"
 required-features = ["notwasm", "juliex"]
 
 [features]
+bindgen = []
 default = ["macros"]
-juliex = ["juliex_crate", "naja_runtime_macros/pool"]
+juliex = ["juliex_crate"]
+localpool = []
 macros = ["naja_runtime_macros"]
 notwasm = []
 external_doc = []
@@ -56,6 +58,7 @@ name = "async_runtime"
 [package]
 authors = ["Naja Melan <najamelan@autistici.org>"]
 autoexamples = false
+build = "build.rs"
 categories = ["concurrency", "asynchronous"]
 description = "A lightweight universal runtime for futures."
 edition = "2018"

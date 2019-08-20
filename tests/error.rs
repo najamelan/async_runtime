@@ -25,7 +25,7 @@ use
 //
 fn shutdown()
 {
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 	rt::run();
 
 	let result = rt::spawn( ready(()) );
@@ -39,12 +39,12 @@ fn shutdown()
 
 // Trigger DoubleExecutorInit with 2 threadpool executors.
 //
-#[test]
+#[ cfg( feature = "localpool" ) ] #[test]
 //
 fn double_init_local()
 {
-	             rt::init( RtConfig::Local ).expect( "no double executor init" );
-	let result = rt::init( RtConfig::Local );
+	             rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::LocalPool );
 
 	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
@@ -53,12 +53,12 @@ fn double_init_local()
 
 // Trigger DoubleExecutorInit with 2 threadpool executors.
 //
-#[test]
+#[ cfg( feature = "juliex" ) ] #[test]
 //
 fn double_init_pool()
 {
-	             rt::init( RtConfig::Pool ).expect( "no double executor init" );
-	let result = rt::init( RtConfig::Pool );
+	             rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::Juliex );
 
 	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
@@ -67,12 +67,12 @@ fn double_init_pool()
 
 // Trigger DoubleExecutorInit with 2 different executors.
 //
-#[test]
+#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
 //
 fn double_init_different()
 {
-	             rt::init( RtConfig::Local ).expect( "no double executor init" );
-	let result = rt::init( RtConfig::Pool  );
+	             rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::Juliex  );
 
 	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
@@ -81,14 +81,27 @@ fn double_init_different()
 
 // Trigger DoubleExecutorInit with 2 different executors.
 //
-#[test]
+#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
 //
 fn double_init_inverse()
 {
-	             rt::init( RtConfig::Pool  ).expect( "no double executor init" );
-	let result = rt::init( RtConfig::Local );
+	             rt::init( rt::Config::Juliex    ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::LocalPool );
 
 	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
 
 
+
+// Trigger SpawnLocalOnThreadPool.
+//
+#[ cfg( feature = "juliex" ) ] #[test]
+//
+fn spawn_local_on_thread_pool()
+{
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+
+	let res = rt::spawn_local( async {} );
+
+	assert_eq!( &RtErrKind::SpawnLocalOnThreadPool, res.unwrap_err().kind() );
+}

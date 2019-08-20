@@ -5,24 +5,39 @@
 //! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 //!
 
-mod exec03;
+mod config   ;
+mod executor ;
+
+#[ cfg( feature = "juliex"    ) ] mod juliex                          ;
+#[ cfg( feature = "juliex"    ) ] use juliex::Juliex                  ;
+#[ cfg( feature = "juliex"    ) ] pub use naja_runtime_macros::juliex ;
+
+#[ cfg( feature = "localpool" ) ] mod localpool                          ;
+#[ cfg( feature = "localpool" ) ] use localpool::LocalPool               ;
+#[ cfg( feature = "localpool" ) ] pub use naja_runtime_macros::localpool ;
+
+#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] mod bindgen                          ;
+#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] use bindgen::Bindgen                 ;
+#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] pub use naja_runtime_macros::bindgen ;
+
 
 pub use
 {
-	naja_runtime_macros :: * ,
+	naja_runtime_macros :: { * } ,
+	config              :: { * } ,
 };
 
 
 use
 {
-	crate  :: { import::*, RtConfig, RtErr, RtErrKind } ,
-	exec03 :: { Exec03                                } ,
+	crate    :: { import::*, RtErr, RtErrKind } ,
+	executor :: { Executor                    } ,
 };
 
 
 std::thread_local!
 (
-	static EXEC: OnceCell< Exec03 > = OnceCell::new();
+	static EXEC: OnceCell<Executor> = OnceCell::INIT;
 );
 
 
@@ -48,7 +63,7 @@ std::thread_local!
 /// #
 /// use async_runtime::*;
 ///
-/// rt::init( RtConfig::Local ).expect( "Set default executor" );
+/// rt::init( rt::Config::LocalPool ).expect( "Set default executor" );
 ///
 /// // ...spawn some tasks...
 /// //
@@ -60,15 +75,28 @@ std::thread_local!
 /// rt::run();
 /// ```
 //
-pub fn init( config: RtConfig ) -> Result< (), RtErr >
+pub fn init( config: Config ) -> Result< (), RtErr >
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
-		exec
-
-			.set( Exec03::new( config ) )
-			.map_err( |_| RtErrKind::DoubleExecutorInit.into() )
+		exec.set( Executor::new( config ) ).map_err( |_| RtErrKind::DoubleExecutorInit.into() )
 	})
+}
+
+/// Set the executor to use by default. The difference with init is that this will not return
+/// an DoubleExecutorInit error if you init with the same executor twice. It will still err
+/// if you try to set 2 different executors for this thread.
+//
+pub fn init_allow_same( config: Config ) -> Result< (), RtErr >
+{
+	if let Some(cfg) = current_rt() {
+	if config == cfg
+	{
+		return Ok(())
+	}}
+
+
+	init( config )
 }
 
 
@@ -76,13 +104,10 @@ pub fn init( config: RtConfig ) -> Result< (), RtErr >
 //
 fn default_init()
 {
-	EXEC.with( move |exec|
+	if current_rt().is_none()
 	{
-		if exec.get().is_none()
-		{
-			init( RtConfig::default() ).unwrap();
-		}
-	});
+		init( Config::default() ).unwrap();
+	}
 }
 
 
@@ -91,8 +116,8 @@ fn default_init()
 ///
 /// ### Errors
 ///
-/// - When using `RtConfig::Pool` (currently juliex), this method is infallible.
-/// - When using `RtConfig::Local` (currently futures 0.3 LocalPool), this method can return a spawn
+/// - When using `Config::Juliex` (currently juliex), this method is infallible.
+/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
 /// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
 /// You can call [crate::rt::run] and spawn again afterwards.
 ///
@@ -130,9 +155,9 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Rt
 ///
 /// ### Errors
 ///
-/// - When using `RtConfig::Pool` (currently juliex), this method will return a [RtErrKind::Spawn](crate::RtErrKind::Spawn). Since
+/// - When using `Config::Juliex` (currently juliex), this method will return a [RtErrKind::Spawn](crate::RtErrKind::Spawn). Since
 /// the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
-/// - When using `RtConfig::Local` (currently futures 0.3 LocalPool), this method can return a spawn
+/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
 /// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
 /// You can call [rt::run](crate::rt::run) and spawn again afterwards.
 //
@@ -202,19 +227,11 @@ pub fn run()
 /// If you are a library author you can use this to generate a clean error message
 /// if you have a hard requirement for a certain executor.
 //
-pub fn current_rt() -> Option<RtConfig>
+pub fn current_rt() -> Option<Config>
 {
 	EXEC.with( move |exec|
 	{
-		if exec.get().is_none()
-		{
-			None
-		}
-
-		else
-		{
-			Some( exec.get().unwrap().config().clone() )
-		}
+		exec.get().map( |e| e.config() )
 	})
 }
 

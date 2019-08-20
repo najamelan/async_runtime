@@ -14,7 +14,7 @@ async fn hello()
 
 // You can create an async main fn like this. You can also choose `thread_pool` over `local`
 //
-#[ rt::local ]
+#[ rt::localpool ]
 //
 async fn main()
 {

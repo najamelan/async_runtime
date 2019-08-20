@@ -1,4 +1,6 @@
-#![ cfg(not( target_arch = "wasm32" )) ]
+#![ cfg(not( target_arch = "wasm32"   )) ]
+#![ cfg(     feature     = "localpool" ) ]
+
 
 // Tested:
 //
@@ -29,7 +31,7 @@ fn basic_spawn()
 	let number  = Rc::new( RefCell::new( 0 ) );
 	let num2    = number.clone();
 
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -50,7 +52,7 @@ fn spawn_boxedlocal()
 {
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
 
 	rt::spawn_local( async move
@@ -80,7 +82,7 @@ fn spawn_boxed()
 	let number  = Arc::new( Mutex::new( 0 ) );
 	let num2    = number.clone();
 
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -108,7 +110,7 @@ fn several()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -142,7 +144,7 @@ fn within()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
 	let task2 = async move
 	{
@@ -176,7 +178,7 @@ fn threads()
 	let num2     = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	rt::init( RtConfig::Local ).expect( "no double executor init" );
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
 	let task = async move
 	{
@@ -185,7 +187,7 @@ fn threads()
 
 	thread::spawn( move ||
 	{
-		rt::init( RtConfig::Local ).expect( "no double executor init" );
+		rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 
 		let task2 = async move
 		{
