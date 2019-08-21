@@ -6,7 +6,7 @@
 //! ✔ we can await in main
 //! ✔ we can return a Result from main
 //
-#![ feature( async_await, optin_builtin_traits ) ]
+#![ feature( optin_builtin_traits ) ]
 
 use
 {

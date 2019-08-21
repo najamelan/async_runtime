@@ -1,8 +1,5 @@
 //! This example shows how to make an async main function.
 //
-#![ feature( async_await ) ]
-
-
 use async_runtime::*;
 
 

@@ -6,7 +6,6 @@
 
 
 #![ doc    ( html_root_url = "https://docs.rs/naja_runtime_macros" ) ]
-#![ feature( async_await                                           ) ]
 #![ forbid ( unsafe_code                                           ) ]
 #![ allow  ( clippy::suspicious_else_formatting                    ) ]
 

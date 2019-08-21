@@ -1,5 +1,4 @@
 #![ cfg(not( target_arch = "wasm32" )) ]
-#![ feature( async_await ) ]
 
 
 // Tested:

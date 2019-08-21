@@ -1,5 +1,4 @@
 #![ cfg( target_arch = "wasm32" )]
-#![ feature( async_await )]
 
 
 // Verify that the default configuration works (no bindgen future enabled).
