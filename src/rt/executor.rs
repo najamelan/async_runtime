@@ -7,7 +7,7 @@ use
 
 #[ cfg( feature = "juliex"    ) ] use super::Juliex    ;
 #[ cfg( feature = "localpool" ) ] use super::LocalPool ;
-#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] use super::Bindgen;
+#[ cfg( feature = "bindgen" ) ] use super::Bindgen;
 
 
 /// The different executors we support.
@@ -28,7 +28,7 @@ pub(crate) enum Executor
 	/// An executor that uses wasm-bindgen-futures under the hood. This is the only executor available on wasm
 	/// at the moment. It is also only available on the wasm32-unknown-unknown target.
 	//
-	#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ]
+	#[ cfg( feature = "bindgen" ) ]
 	//
 	Bindgen( Bindgen ),
 
@@ -46,7 +46,7 @@ impl Executor
 		{
 			#[ cfg( feature = "localpool" ) ] Config::LocalPool => Self::LocalPool( LocalPool::new() ),
 			#[ cfg( feature = "juliex"    ) ] Config::Juliex    => Self::Juliex   ( Juliex   ::new() ),
-			#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] Config::Bindgen   => Self::Bindgen  ( Bindgen  ::new() ),
+			#[ cfg( feature = "bindgen"   ) ] Config::Bindgen   => Self::Bindgen  ( Bindgen  ::new() ),
 
 			_ => unreachable!(),
 		}
@@ -58,7 +58,7 @@ impl Executor
 		{
 			#[ cfg( feature = "localpool" ) ] Self::LocalPool(_) => Config::LocalPool ,
 			#[ cfg( feature = "juliex"    ) ] Self::Juliex   (_) => Config::Juliex    ,
-			#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] Self::Bindgen  (_) => Config::Bindgen   ,
+			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen  (_) => Config::Bindgen   ,
 
 			_ => unreachable!(),
 		}
@@ -71,7 +71,7 @@ impl Executor
 		{
 			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.run(),
 			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (_) => {}
-			#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] Self::Bindgen   (_) => {}
+			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (_) => {}
 
 			_ => unreachable!(),
 		}
@@ -84,7 +84,7 @@ impl Executor
 		{
 			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.spawn( fut ),
 			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (e) => e.spawn( fut ),
-			#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] Self::Bindgen   (e) => e.spawn( fut ),
+			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (e) => e.spawn( fut ),
 
 			_ => unreachable!(),
 		}
@@ -97,7 +97,7 @@ impl Executor
 		{
 			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.spawn_local( fut ),
 			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (e) => e.spawn_local( fut ),
-			#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] Self::Bindgen   (e) => e.spawn_local( fut ),
+			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (e) => e.spawn_local( fut ),
 
 			_ => unreachable!(),
 		}

@@ -45,7 +45,7 @@ mod import
 	};
 
 
-	#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ]
+	#[ cfg( feature = "bindgen" ) ]
 	//
 	pub(crate) use
 	{

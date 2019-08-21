@@ -20,7 +20,7 @@ pub enum Config
 	/// An executor that uses wasm-bindgen-futures under the hood. This is the only executor available on wasm
 	/// at the moment. It is also only available on the wasm32-unknown-unknown target.
 	//
-	#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ]
+	#[ cfg( feature = "bindgen" ) ]
 	//
 	Bindgen,
 
@@ -34,7 +34,7 @@ impl Default for Config
 {
 	fn default() -> Self
 	{
-		#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ]
+		#[ cfg( feature = "bindgen" ) ]
 		//
 		return Config::Bindgen;
 

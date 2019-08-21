@@ -16,9 +16,9 @@ mod executor ;
 #[ cfg( feature = "localpool" ) ] use localpool::LocalPool               ;
 #[ cfg( feature = "localpool" ) ] pub use naja_runtime_macros::localpool ;
 
-#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] mod bindgen                          ;
-#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] use bindgen::Bindgen                 ;
-#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ] pub use naja_runtime_macros::bindgen ;
+#[ cfg( feature = "bindgen" ) ] mod bindgen                          ;
+#[ cfg( feature = "bindgen" ) ] use bindgen::Bindgen                 ;
+#[ cfg( feature = "bindgen" ) ] pub use naja_runtime_macros::bindgen ;
 
 
 pub use
