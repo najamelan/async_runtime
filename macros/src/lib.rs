@@ -56,7 +56,7 @@ pub fn localpool( _args: TokenStream, item: TokenStream ) -> TokenStream
 		{
 			async_runtime::rt::init_allow_same( async_runtime::rt::Config::LocalPool ).expect( "no double executor init" );
 
-			let body = async move { #body };
+			let body = async move #body ;
 
 			let handle = async_runtime::rt::spawn_handle_local( body ).expect( "spawn from proc macro attribute" );
 			async_runtime::rt::run();
@@ -95,7 +95,7 @@ pub fn juliex( _args: TokenStream, item: TokenStream ) -> TokenStream
 		{
 			async_runtime::rt::init_allow_same( async_runtime::rt::Config::Juliex ).expect( "no double executor init" );
 
-			async_runtime::rt::block_on( async move { #body } )
+			async_runtime::rt::block_on( async move #body )
 		}
 	};
 
@@ -129,7 +129,7 @@ pub fn bindgen( _args: TokenStream, item: TokenStream ) -> TokenStream
 		{
 			async_runtime::rt::init_allow_same( async_runtime::rt::Config::Bindgen ).expect( "no double executor init" );
 
-			let body = async move { #body };
+			let body = async move #body ;
 
 			async_runtime::rt::spawn_local( body ).expect( "spawn from proc macro attribute" );
 		}

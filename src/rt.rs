@@ -240,8 +240,21 @@ pub fn current_rt() -> Option<Config>
 /// Block the current thread until the given future resolves and return the Output.
 /// This just forwards to `futures::executor::block_on` under the hood.
 ///
+/// **Warning** - this method does not play well with the rest of the executors. If you
+/// use the localpool executor, only the future you pass here will be polled. futures
+/// that are "spawned" will just not run.
+///
+/// If you use juliex, the threadpool will continue working, but block_on will not wait
+/// until all your futures have finished. As soon as the future you block on finishes,
+/// if `block_on` is the last statement of your program, the program will just end, regardless
+/// of other futures still on the threadpool.
+///
+/// In general you shouldn't block the thread when you are in an async context.
+///
 /// **Note:** This method is not available on WASM, since WASM currently does not allow blocking
 /// the current thread.
+//
+#[ cfg(not( target_arch = "wasm32" )) ]
 //
 pub fn block_on< F: Future >( fut: F ) -> F::Output
 {

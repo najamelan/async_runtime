@@ -35,19 +35,7 @@ Rust expects a synchronous `main` function. With this macro it gets one. However
 ```rust
 fn main() -> Result<(), ()>
 {
-	match rt::current_rt()
-	{
-		None => rt::init( rt::RtConfig::Local ).unwrap(),
-
-		Some(cfg) =>
-		{
-			if RtConfig::Local != cfg
-			{
-				panic!( RtErr::from( RtErrKind::DoubleExecutorInit ) );
-			}
-		}
-	}
-
+	rt::init_allow_same( rt::Config::LocalPool ).expect( "no double executor init" );
 
 	let body = async move
 	{

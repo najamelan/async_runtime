@@ -76,7 +76,7 @@ features:
   # for it not to be enabled, and it's providing dependency wasm-bindgen-futures will always be compiled
   # in.
   #
-  bindgen   : []
+  bindgen   : [ wasm-bindgen-futures ]
 
   # only used internally, don't use
   #
@@ -94,10 +94,14 @@ dependencies:
   juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex }
   naja_runtime_macros : { path: macros, optional: true }
 
+  # necessary for the crate to compile for `cargo doc`
+  #
+  wasm-bindgen-futures: { version: ^0.3, features: [ futures_0_3 ], optional: true }
 
 dev-dependencies:
 
   pretty_assertions : ^0.6
+
   # log               : ^0.4
   # flexi_logger      : ^0.11
 
@@ -124,8 +128,19 @@ example:
     path             : examples/juliex.rs
     required-features: [ notwasm, juliex ]
 
+  - name             : async-file
+    path             : examples/async-file.rs
+    required-features: [ notwasm, localpool ]
+
 
 target:
+
+  'cfg(not( target_arch = "wasm32" ))':
+
+    dev-dependencies:
+
+      async-std: ^0.99
+
 
   'cfg(target_arch = "wasm32")':
 

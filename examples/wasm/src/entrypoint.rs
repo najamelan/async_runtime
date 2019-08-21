@@ -8,7 +8,7 @@ use
 
 // Called when the wasm module is instantiated
 //
-#[ rt::local             ]
+#[ rt::bindgen           ]
 #[ wasm_bindgen( start ) ]
 //
 pub async fn main()

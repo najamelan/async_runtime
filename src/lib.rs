@@ -57,7 +57,6 @@ mod import
 	//
 	pub(crate) use
 	{
-		std       :: { sync::atomic::{ AtomicBool, Ordering } } ,
-		once_cell :: { sync::OnceCell as SyncOnceCell         } ,
+		once_cell :: { sync::OnceCell as SyncOnceCell } ,
 	};
 }

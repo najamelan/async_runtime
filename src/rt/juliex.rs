@@ -12,7 +12,6 @@ pub(crate) struct Juliex {}
 static JULIEX_POOL: SyncOnceCell<juliex_crate::ThreadPool> = SyncOnceCell::INIT;
 
 
-
 impl Juliex
 {
 	/// Create a new Juliex from a [Config](rt::Config) configuration.
@@ -31,20 +30,14 @@ impl Juliex
 		// whether we are already initializing, we really need to be sure that that happens after the store,
 		// so I think we need `Ordering::SeqCst`.
 		//
-		static INITIALIZING: AtomicBool = AtomicBool::new( false );
+		JULIEX_POOL.get_or_init( ||
 
-		if !INITIALIZING.load( Ordering::SeqCst )
-		{
-			INITIALIZING.store( true, Ordering::SeqCst );
-
-			JULIEX_POOL.get_or_init( ||
+			juliex_crate::ThreadPool::with_setup( ||
 			{
-				juliex_crate::ThreadPool::with_setup( ||
-				{
-					rt::init( rt::Config::Juliex );
-				})
-			});
-		}
+				rt::init( rt::Config::Juliex ).expect( "set executor on juliex working thread" );
+			})
+
+		);
 
 		Self {}
 	}

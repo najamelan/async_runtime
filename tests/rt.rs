@@ -21,8 +21,6 @@ use
 
 // Verifies that a default executor is chosen when no features are enabled.
 //
-#[ cfg(not( feature = "juliex" ))]
-//
 #[test]
 //
 fn default_config()
@@ -73,7 +71,7 @@ fn spawn()
 
 	rt::spawn( async {} ).expect( "spawn" );
 
-	assert_eq!( Some( rt::Config::Juliex ), rt::current_rt() );
+	assert_eq!( Some( rt::Config::LocalPool ), rt::current_rt() );
 }
 
 

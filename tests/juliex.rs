@@ -25,19 +25,24 @@ use
 //
 fn basic_spawn()
 {
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+
 	let (tx, rx) = oneshot::channel();
 
 	let task = async move
 	{
-		tx.send( 2 ).expect( "send on channel" );
+		tx.send( 2u8 ).expect( "send on channel" );
 	};
 
 	rt::spawn( task ).expect( "Spawn task" );
 
+	dbg!( std::thread::current().id(), rt::current_rt() );
+
 	rt::block_on( async move
 	{
-		assert_eq!( 2, rx.await.expect( "wait on channel" ) );
-	})
+		assert_eq!( 2u8, rx.await.expect( "wait on channel" ) );
+
+	});
 }
 
 
@@ -53,15 +58,17 @@ fn spawn_config()
 
 	let task = async move
 	{
-		tx.send( 3 ).expect( "send on channel" );
+		tx.send( 3u8 ).expect( "send on channel" );
 	};
 
 	rt::spawn( task ).expect( "Spawn task" );
 
 	rt::block_on( async move
 	{
-		assert_eq!( 3, rx.await.expect( "wait on channel" ) );
-	})
+		assert_eq!( 3u8, rx.await.expect( "wait on channel" ) );
+	});
+	dbg!( std::thread::current().id(), rt::current_rt() );
+
 }
 
 
@@ -70,6 +77,8 @@ fn spawn_config()
 //
 fn spawn_boxed()
 {
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+
 	let (tx, rx) = oneshot::channel();
 
 	let task = async move
@@ -93,6 +102,8 @@ fn spawn_boxed()
 //
 fn several()
 {
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
@@ -121,6 +132,8 @@ fn several()
 //
 fn within()
 {
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
@@ -152,6 +165,8 @@ fn within()
 //
 fn not_running_local()
 {
+	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+
 	let (tx, rx) = oneshot::channel();
 
 	let task = async move

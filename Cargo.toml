@@ -25,6 +25,11 @@ path = "macros"
 default-features = false
 version = "^0.1"
 
+[dependencies.wasm-bindgen-futures]
+features = ["futures_0_3"]
+optional = true
+version = "^0.3"
+
 [dev-dependencies]
 pretty_assertions = "^0.6"
 
@@ -43,8 +48,13 @@ name = "juliex"
 path = "examples/juliex.rs"
 required-features = ["notwasm", "juliex"]
 
+[[example]]
+name = "async-file"
+path = "examples/async-file.rs"
+required-features = ["notwasm", "localpool"]
+
 [features]
-bindgen = []
+bindgen = ["wasm-bindgen-futures"]
 default = ["macros"]
 juliex = ["juliex_crate"]
 localpool = []
@@ -79,6 +89,10 @@ features = ["external_doc", "juliex"]
 codegen-units = 1
 
 [target]
+[target."cfg(not( target_arch = \"wasm32\" ))"]
+[target."cfg(not( target_arch = \"wasm32\" ))".dev-dependencies]
+async-std = "^0.99"
+
 [target."cfg(target_arch = \"wasm32\")"]
 [target."cfg(target_arch = \"wasm32\")".dependencies]
 [target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
