@@ -8,28 +8,25 @@
 mod config   ;
 mod executor ;
 
-#[ cfg( feature = "juliex"    ) ] mod juliex                             ;
-#[ cfg( feature = "juliex"    ) ] use juliex::Juliex                     ;
-#[ cfg( feature = "juliex"    ) ] pub use naja_runtime_macros::juliex    ;
-
-#[ cfg( feature = "async_std" ) ] pub mod async_std                      ;
-#[ cfg( feature = "async_std" ) ] use async_std::AsyncStd                ;
-#[ cfg( feature = "async_std" ) ] pub use naja_runtime_macros::async_std ;
-
-#[ cfg( feature = "localpool" ) ] mod localpool                          ;
-#[ cfg( feature = "localpool" ) ] use localpool::LocalPool               ;
-#[ cfg( feature = "localpool" ) ] pub use naja_runtime_macros::localpool ;
-
-#[ cfg( feature = "bindgen"   ) ] mod bindgen                            ;
-#[ cfg( feature = "bindgen"   ) ] use bindgen::Bindgen                   ;
-#[ cfg( feature = "bindgen"   ) ] pub use naja_runtime_macros::bindgen   ;
+pub use config::*;
 
 
-pub use
-{
-	naja_runtime_macros :: { * } ,
-	config              :: { * } ,
-};
+#[ cfg( feature = "juliex"    ) ] mod juliex               ;
+#[ cfg( feature = "juliex"    ) ] use juliex::Juliex       ;
+
+#[ cfg( feature = "async_std" ) ] pub mod async_std        ;
+#[ cfg( feature = "async_std" ) ] use async_std::AsyncStd  ;
+
+#[ cfg( feature = "localpool" ) ] mod localpool            ;
+#[ cfg( feature = "localpool" ) ] use localpool::LocalPool ;
+
+#[ cfg( feature = "bindgen"   ) ] mod bindgen              ;
+#[ cfg( feature = "bindgen"   ) ] use bindgen::Bindgen     ;
+
+#[ cfg(all( feature = "macros", feature = "juliex"    )) ] pub use naja_runtime_macros::juliex    ;
+#[ cfg(all( feature = "macros", feature = "async_std" )) ] pub use naja_runtime_macros::async_std ;
+#[ cfg(all( feature = "macros", feature = "localpool" )) ] pub use naja_runtime_macros::localpool ;
+#[ cfg(all( feature = "macros", feature = "bindgen"   )) ] pub use naja_runtime_macros::bindgen   ;
 
 
 use
@@ -60,24 +57,24 @@ std::thread_local!
 /// call it twice on the same thread or if you have called [spawn] and thus the executor has been initialized
 /// by default before you call init.
 ///
+///
 /// ### Example
-///
-/// ```
-/// # #![ feature( async_await ) ]
-/// #
-/// use async_runtime::*;
-///
-/// rt::init( rt::Config::LocalPool ).expect( "Set default executor" );
-///
-/// // ...spawn some tasks...
-/// //
-/// rt::spawn( async {} ).expect( "spawn future" );
-///
-/// // Important, otherwise the local executor does not poll. For the threadpool this is not necessary,
-/// // as futures will be polled immediately after spawning them.
-/// //
-/// rt::run();
-/// ```
+#[cfg_attr(feature = "localpool", doc = r##"
+```rust
+use async_runtime::*;
+
+rt::init( rt::Config::LocalPool ).expect( "Set default executor" );
+
+// ...spawn some tasks...
+//
+rt::spawn( async {} ).expect( "spawn future" );
+
+// Important, otherwise the local executor does not poll. For the threadpool this is not necessary,
+// as futures will be polled immediately after spawning them.
+//
+rt::run();
+```
+"##)]
 //
 pub fn init( config: Config ) -> Result< (), RtErr >
 {
@@ -126,20 +123,18 @@ fn default_init()
 /// You can call [crate::rt::run] and spawn again afterwards.
 ///
 /// ### Example
-///
-/// ```
-/// # #![ feature( async_await) ]
-/// #
-/// use async_runtime::*;
-///
-/// // This will run on the threadpool. For the local pool you must call [rt::init] and [rt::run].
-/// //
-/// rt::spawn( async
-/// {
-///    println!( "async execution" );
-///
-/// });
-/// ```
+#[ cfg_attr( feature = "localpool", doc = r##"
+```
+use async_runtime::*;
+// This will run on the threadpool. For the local pool you must call [rt::init] and [rt::run].
+//
+rt::spawn( async
+{
+   println!( "async execution" );
+
+});
+```
+"##)]
 //
 pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), RtErr >
 {

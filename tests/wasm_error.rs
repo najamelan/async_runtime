@@ -1,4 +1,4 @@
-#![ cfg( target_arch = "wasm32" )]
+#![ cfg(all( target_arch = "wasm32", feature = "bindgen" )) ]
 
 // wasm_bindgen_test currently runs all tests in the same context, so we can only init once.
 //

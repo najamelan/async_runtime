@@ -19,5 +19,5 @@
 
 [dependencies]
 
-	async_runtime   = { path = "../../", features = [ "localpool", "juliex" ], package = "naja_async_runtime" }
+	async_runtime   = { path = "../../", features = [ "localpool", "juliex", "macros" ], package = "naja_async_runtime" }
 	futures-preview = "0.3.0-alpha"

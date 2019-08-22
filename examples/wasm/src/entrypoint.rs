@@ -28,5 +28,5 @@ pub async fn main()
 
 async fn hello_world() -> String
 {
-	format!( "You succesfully spawned a future" )
+	format!( "You succesfully awaited a future" )
 }

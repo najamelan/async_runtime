@@ -21,6 +21,8 @@ use
 
 // Verifies that a default executor is chosen when no features are enabled.
 //
+#[ cfg( feature = "localpool" ) ]
+//
 #[test]
 //
 fn default_config()
@@ -33,7 +35,8 @@ fn default_config()
 }
 
 
-
+#[ cfg( feature = "localpool" ) ]
+//
 #[test]
 //
 fn localpool()
@@ -61,7 +64,7 @@ fn thread_pool()
 
 
 
-#[ cfg( feature = "juliex" ) ]
+#[ cfg( feature = "localpool" ) ]
 //
 #[test]
 //

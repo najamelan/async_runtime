@@ -3,7 +3,7 @@
 //! In this example we run a bunch of tasks in parallel. To verify that they run on different threads
 //! we make them all sleep for a second and measure the time passed when they finish.
 //!
-//! run with: `cargo run --example juliex --features notwasm juliex`
+//! run with: `cargo run --example juliex --features macros juliex`
 //
 use
 {

@@ -1,6 +1,6 @@
 //! This example shows how to make an async main function.
 //!
-//! run with `cargo run --example attribute --features notwasm localpool`
+//! run with `cargo run --example attribute --features macros localpool`
 //
 use async_runtime::*;
 

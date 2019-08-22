@@ -3,6 +3,7 @@
 wasm-bindgen = "^0.2"
 
 [dependencies.async_runtime]
+features = ["macros", "bindgen"]
 package = "naja_async_runtime"
 path = "../../"
 

@@ -41,27 +41,28 @@ pretty_assertions = "^0.6"
 [[example]]
 name = "attribute"
 path = "examples/attribute.rs"
-required-features = ["notwasm"]
+required-features = ["notwasm", "macros", "localpool"]
 
 [[example]]
 name = "localpool"
 path = "examples/localpool.rs"
-required-features = ["notwasm"]
+required-features = ["notwasm", "macros", "localpool"]
 
 [[example]]
 name = "juliex"
 path = "examples/juliex.rs"
-required-features = ["notwasm", "juliex"]
+required-features = ["notwasm", "juliex", "macros"]
 
 [[example]]
 name = "async-file"
 path = "examples/async-file.rs"
-required-features = ["notwasm", "localpool"]
+required-features = ["notwasm", "localpool", "macros"]
 
 [features]
 async_std = ["async_std_crate"]
 bindgen = ["wasm-bindgen-futures"]
-default = ["macros"]
+default = ["notwasm"]
+external_doc = []
 juliex = ["juliex_crate"]
 localpool = []
 macros = ["naja_runtime_macros"]
@@ -74,7 +75,6 @@ name = "async_runtime"
 [package]
 authors = ["Naja Melan <najamelan@autistici.org>"]
 autoexamples = false
-build = "build.rs"
 categories = ["concurrency", "asynchronous"]
 description = "A lightweight universal runtime for futures."
 edition = "2018"

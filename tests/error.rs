@@ -8,18 +8,21 @@
 // - ✔ double executor init error: Local - Pool.
 // - ✔ double executor init error: Pool  - Local.
 
+#[ cfg( feature = "localpool" ) ]
+//
+use futures::future::ready;
 
-use
-{
-	async_runtime :: { *             } ,
-	futures       :: { future::ready } ,
-};
+#[ cfg(any( feature = "juliex", feature = "localpool" )) ]
+//
+use async_runtime::*;
 
 
 
 
 // This is an attempt to trigger the shutdown error on the localpool from the futures lib, but run does not
 // shut it down, so I don't know how to trigger this error.
+//
+#[ cfg( feature = "localpool" ) ]
 //
 #[test]
 //

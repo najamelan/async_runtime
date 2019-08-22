@@ -1,4 +1,4 @@
-#![ cfg( target_arch = "wasm32" )]
+#![ cfg(all( target_arch = "wasm32", feature = "bindgen" )) ]
 
 
 // Verify that the default configuration works (no bindgen future enabled).

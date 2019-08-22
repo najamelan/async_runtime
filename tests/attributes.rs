@@ -1,4 +1,4 @@
-#![ cfg(not( target_arch = "wasm32" )) ]
+#![ cfg(all( not(target_arch = "wasm32"), feature = "macros" )) ]
 
 
 // Tested:
@@ -6,13 +6,28 @@
 // - ✔ set an attribute for local pool and use spawn
 // - ✔ set an attribute for thead pool and use spawn
 
-
 use
 {
-	std           :: { rc::Rc, cell::RefCell, process::Command, path::Path } ,
-	async_runtime :: { rt                                                  } ,
-	futures       :: { FutureExt                                           } ,
+	std :: { path::Path, process::Command  } ,
 };
+
+
+#[ cfg(any( feature = "localpool", feature = "juliex" )) ]
+//
+use
+{
+	async_runtime :: { rt        } ,
+	futures       :: { FutureExt } ,
+};
+
+
+#[ cfg( feature = "localpool" ) ]
+//
+use
+{
+	std :: { rc::Rc, cell::RefCell } ,
+};
+
 
 #[ cfg( feature = "juliex" ) ]
 //
@@ -44,6 +59,8 @@ async fn async_test()
 
 
 // call an async method from a sync method
+//
+#[ cfg( feature = "localpool" ) ]
 //
 #[test]
 //

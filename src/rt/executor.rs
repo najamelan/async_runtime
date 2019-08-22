@@ -86,6 +86,10 @@ impl Executor
 	}
 
 
+	// For the case where we compile without an executor enabled, the fut variable will be unused.
+	//
+	#[ allow( unused_variables ) ]
+	//
 	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{
 		match self
@@ -100,6 +104,10 @@ impl Executor
 	}
 
 
+	// For the case where we compile without an executor enabled, the fut variable will be unused.
+	//
+	#[ allow( unused_variables ) ]
+	//
 	pub fn spawn_local( &self, fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
 	{
 		match self
@@ -117,6 +125,10 @@ impl Executor
 
 
 	/// Spawn a future and recover the output.
+	//
+	// For the case where we compile without an executor enabled, the fut variable will be unused.
+	//
+	#[ allow( unused_variables ) ]
 	//
 	pub fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
@@ -137,6 +149,10 @@ impl Executor
 
 
 	/// Spawn a future and recover the output for `!Send` futures.
+	//
+	// For the case where we compile without an executor enabled, the fut variable will be unused.
+	//
+	#[ allow( unused_variables ) ]
 	//
 	pub fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
 

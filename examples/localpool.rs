@@ -6,7 +6,7 @@
 //! - await in main
 //! - spawn !Send futures
 //!
-//! run with `cargo run --example localpool --features notwasm localpool`
+//! run with `cargo run --example localpool --features macros localpool`
 //
 use
 {

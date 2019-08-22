@@ -38,15 +38,42 @@ pub enum Config
 
 impl Default for Config
 {
+	#[ cfg(all( feature = "bindgen", target_arch = "wasm32" )) ]
+	//
 	fn default() -> Self
 	{
-		#[ cfg( feature = "bindgen" ) ]
-		//
 		return Config::Bindgen;
+	}
 
 
-		#[ cfg( feature = "localpool" ) ]
-		//
+	#[ cfg( feature = "localpool" ) ]
+	//
+	fn default() -> Self
+	{
 		return Config::LocalPool;
+	}
+
+
+	#[ cfg(all( feature = "juliex", not(feature = "localpool") )) ]
+	//
+	fn default() -> Self
+	{
+		return Config::Juliex;
+	}
+
+
+	#[ cfg(all( feature = "async_std", not(feature = "localpool"), not(feature = "juliex") )) ]
+	//
+	fn default() -> Self
+	{
+		return Config::AsyncStd;
+	}
+
+
+	#[ cfg(all( not(feature = "async_std"), not(feature = "bindgen"), not(feature = "localpool"), not(feature = "juliex") )) ]
+	//
+	fn default() -> Self
+	{
+		panic!( "No executor enabled. You need to add a dependency on naja_async_runtime with at least one feature to enable an executor" );
 	}
 }

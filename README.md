@@ -58,6 +58,7 @@ With raw Cargo.toml
    async_runtime = { version = "^0.4", package = "naja_async_runtime" }
 ```
 
+Minimum required rustc version: 1.39.
 
 ### Upgrade
 
@@ -68,43 +69,33 @@ Please check out the [changelog](https://github.com/najamelan/async_runtime/blob
 
 These features enable extra functionality:
 
-   - `macros`: proc macro attributes to turn an async fn into a sync one. _On by default_.
+   - `macros`: proc macro attributes to turn an async fn into a sync one.
    - `juliex`: the juliex executor.
    - `async_std`: the async-std executor.
-   - `localpool`: the localpool. _Turned on by default on non WASM targets_.
-   - `bindgen`: the wasm-bindgen backed executor. _Turned on by default on WASM targets_.
+   - `localpool`: the localpool.
+   - `bindgen`: the wasm-bindgen backed executor.
 
 Various aspects of the library are only available if certain features are enabled. This will be noted in the documentation.
 
-**Note** for library authors. You should not enable any features on `async_runtime`. The global executor is chosen by the application developer.
+**Note** for library authors. You should not enable any features on `async_runtime`. The per thread executor is chosen by the application developer (exception: your library is creating threads).
 
 
 ### Dependencies
 
-This crate has few dependiencies. Cargo will automatically handle it's dependencies for you, except:
-
-- `juliex` is optional. The feature is not additive. The default executor for each thread is the threadpool if `juliex` is turned on, but it is the localpool if it's not.
-
-Other dependencies:
-
-```yaml
-failure         : ^0.1
-futures-preview : { version: ^0.3.0-alpha, features: [ std, compat ], default-features: false }
-log             : ^0.4
-once_cell       : { version: ^0.2, default-features: false }
-juliex          : { version: ^0.3.0-alpha, optional: true }
-```
+This crate has few dependiencies. Cargo will automatically handle it's dependencies for you, except that
+when you are an application developer, you must enable at least one executor and you might want to enable
+the `macros` feature.
 
 ## Usage
 
 ### Available executors
 
-__Warning:__ Some executors have specific modules (like `rt::async_std`) that make available functionality
+__Warning:__ Some executors have specific modules (like `rt::async_std`) which make available functionality
 specific to this particular executor. These exist for 2 reasons:
 - The API of the different supported executors varies. It is not always possible to provide a unified API
   on top of them. To avoid losing functionality, we make it available in these modules.
 - Sometimes providing a unified API imposes overhead like boxing a return type (`rt::spawn_handle`)
-  or running initialization code for worker threads on threadpools that don't support setting up the
+  or running initialization code for worker threads on threadpools which don't support setting up the
   threadpool with initialization code when it is created. (`rt::spawn` on async-std).
 
 You should be careful using functionality from these modules. They work if you know what executor you
@@ -179,6 +170,9 @@ like channels or [`join_all`](https://rust-lang-nursery.github.io/futures-api-do
 A threadpool. Worker threads created cannot have AsyncStd set automatically as the default executor. This means
 that `rt::spawn` will have some overhead to make sure the worker thread is initialized properly.
 
+__Warning__: async-std does not have optional dependencies, so you will be pulling in all their dependencies,
+including network libraries, mio, ... which will cause bloat if you don't use them.
+
 Futures will be polled immediately. If you have a top level future that you block one, or that is being waited on
 by the macro attribute, as soon as that future is done, the progam will end, even if there are still tasks
 in the thread pool that haven't finished yet.
@@ -193,7 +187,7 @@ There is an `rt::async_std` module with specific functionality from this executo
 
 #### block_on
 
-- feature: N/A
+- feature: no feature, always available
 - attribute: N/A
 - config: N/A
 - targets: not on WASM
@@ -208,10 +202,7 @@ Please read the documentation of [rt::block_on].
 Please have a look in the [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 
 ```rust
-use
-{
-   async_runtime :: { * } ,
-};
+use async_runtime::*;
 
 // in library code:
 //
@@ -230,7 +221,7 @@ fn main()
    // This only fails if you initialize twice. Therefor library code should not do this
    // unless the library is creating the threads.
    //
-   rt::init( RtConfig::Local ).expect( "executor init" );
+   rt::init( rt::Config::Local ).expect( "executor init" );
 
    // Please look at the documentation for rt::spawn for the possible errors here.
    //
@@ -250,7 +241,7 @@ fn main()
 // they run on different threads we make them all sleep for a second and
 // measure the time passed when they finish.
 
-#![ feature( async_await, duration_constants ) ]
+#![ feature( duration_constants ) ]
 
 use
 {
@@ -259,45 +250,35 @@ use
    futures       :: { future::{ FutureExt, join_all }            } ,
 };
 
-fn main()
+
+#[ rt::juliex ]
+//
+async fn main()
 {
-   let program = async
+   let     start = Instant::now();
+   let mut tasks = Vec::new();
+
+   for i in 0..8
    {
-      let start = Instant::now();
-      let mut tasks = Vec::new();
-
-      for i in 0..8
+      // There isn't currently a convenient way to run tasks on a threadpool until all tasks have
+      // finished, or until some shutdown signal is given.
+      //
+      // This is one of the ways tasks can synchronize and wait on eachother. Another way is to wait
+      // on channels.
+      //
+      let (fut, handle) = async move
       {
-         // There isn't currently a convenient way to run tasks on a threadpool
-         // until all tasks have finished, or until some shutdown signal is given.
-         //
-         // This is one of the ways tasks can synchronize and wait on each other.
-         // Another way is to wait on channels.
-         //
-         let (fut, handle) = async move
-         {
-            sleep( Duration::SECOND );
+         sleep( Duration::SECOND );
 
-            println!
-            (
-               "Time elapsed at task {} end: {} second(s).",
-               i, start.elapsed().as_secs()
-            );
+         println!( "Time elapsed at task {} end: {} second(s).", i, start.elapsed().as_secs() );
 
-         }.remote_handle();
+      }.remote_handle();
 
+      rt::spawn( fut ).expect( "spawn task" );
+      tasks.push( handle );
+   }
 
-         // If the juliex feature is enabled, RtConfig::Pool becomes the default executor, so we don't
-         // have to call rt::init.
-         //
-         rt::spawn( fut ).expect( "spawn task" );
-         tasks.push( handle );
-      }
-
-      join_all( tasks ).await;
-   };
-
-   rt::block_on( program );
+   join_all( tasks ).await;
 }
 ```
 

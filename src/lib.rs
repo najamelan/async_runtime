@@ -32,17 +32,12 @@ mod import
 	{
 		once_cell :: { unsync::OnceCell                       } ,
 		std       :: { cfg, fmt, future::Future, error::Error } ,
-		futures   :: { future::FutureExt                      } ,
 	};
 
 
-	#[ cfg(not( target_arch = "wasm32" )) ]
+	#[ cfg(any( feature = "bindgen", feature = "localpool", feature = "juliex", feature = "async_std" )) ]
 	//
-	pub(crate) use
-	{
-		std     :: { cell::RefCell                                                              } ,
-		futures :: { task::LocalSpawnExt, executor::{ LocalPool as FutLocalPool, LocalSpawner } } ,
-	};
+	pub(crate) use	futures::future::FutureExt;
 
 
 	#[ cfg( feature = "bindgen" ) ]
@@ -50,6 +45,15 @@ mod import
 	pub(crate) use
 	{
 		wasm_bindgen_futures :: { futures_0_3::spawn_local } ,
+	};
+
+
+	#[ cfg( feature = "localpool" ) ]
+	//
+	pub(crate) use
+	{
+		std     :: { cell::RefCell                                                              } ,
+		futures :: { task::LocalSpawnExt, executor::{ LocalPool as FutLocalPool, LocalSpawner } } ,
 	};
 
 
