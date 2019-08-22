@@ -89,4 +89,30 @@ impl Juliex
 	{
 		Err( RtErrKind::SpawnLocalOnThreadPool.into() )
 	}
+
+
+	/// Spawn a future and recover the output.
+	//
+	pub fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
+
+		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+
+	{
+		let (fut, handle) = fut.remote_handle();
+
+		self.spawn( fut )?;
+		Ok(Box::new( handle ))
+	}
+
+
+
+	/// Spawn a future and recover the output for `!Send` futures.
+	//
+	pub fn spawn_handle_local<T: 'static + Send>( &self, _: impl Future< Output=T > + 'static )
+
+		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+
+	{
+		Err( RtErrKind::SpawnLocalOnThreadPool.into() )
+	}
 }

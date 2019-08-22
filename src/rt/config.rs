@@ -10,6 +10,12 @@ pub enum Config
 	//
 	Juliex,
 
+	/// A threadpool executor from the async-std crate.
+	//
+	#[ cfg( feature = "async_std" ) ]
+	//
+	AsyncStd,
+
 	/// An executor that runs futures on the current thread, capable of running `!`[`Send`] futures. Uses
 	/// `futures::executor::LocalPool`.
 	//

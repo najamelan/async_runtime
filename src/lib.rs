@@ -32,7 +32,7 @@ mod import
 	{
 		once_cell :: { unsync::OnceCell                       } ,
 		std       :: { cfg, fmt, future::Future, error::Error } ,
-		futures   :: { future::{ FutureExt, RemoteHandle }    } ,
+		futures   :: { future::FutureExt                      } ,
 	};
 
 

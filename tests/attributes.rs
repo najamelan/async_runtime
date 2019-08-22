@@ -29,7 +29,7 @@ use std::sync::{ Arc, Mutex };
 //
 async fn async_test()
 {
-	let number  = Rc::new( RefCell::new( 0 ) );
+	let number  = Rc::new( RefCell::new( 0u8 ) );
 	let num2    = number.clone();
 
 	let (fut, handle) = async move { *num2.borrow_mut() = 2; }.remote_handle();

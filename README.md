@@ -14,31 +14,16 @@ yet let client code decide what kind of executor is used. Currently the choice i
 futures 0.3 `LocalPool` and the [juliex](https://github.com/withoutboats/juliex) threadpool.
 Other implementations might be added later.
 
-Differences with the [runtime](https://github.com/rustasync/runtime) crate:
+Some key features:
 
-  - doesn't load any network dependencies
-  - client code can decide that the executor for the thread is a LocalPool (can be a serious performance benefit sometimes)
-  - the executor is not a trait object, so you can't just implement a different one without
-  patching this crate. I have not yet found the use for this, and tokio futures and streams
-  run just fine with the compatibility layer from futures 0.3. If the provided executors are
-  not sufficient, please file an issue or a pull request.
+   - macro attributes to turn async fn in sync fn (can be used on main, tests or arbitrary async fn)
+   - tries to do one thing and do it good (does not pull network/timer dependencies)
+   - support a variety of executors, including single threaded ones that allow spawning `!Send` futures.
+   - lightweight with very few dependencies
+   - library authors can spawn, application authors can decide which executor is used on each thread
+   - doesn't load network dependencies
 
-Both crates work on WASM.
-
-When not on WASM, the default executor is the juliex threadpool (unless you use `default-features = false`).
-This is because the executor is set per thread and when tasks run on a threadpool thread and they spawn,
-they will automatically spawn on the threadpool. This alleviates the need for initialization code on the threadpool
-threads. This means that you have to call [`rt::init`] if you want the `LocalPool` (or disable the default features).
-
-On WASM, the default executor is also a threadpool, even though that's impossible (wasm does not have threads right now).
-It's recommended to use `default-features = false` on wasm to disable the dependency on juliex. This will change the
-default executor to be the local pool. This might seem like an odd API design, but WASM will have threads in the future,
-so I prefered keeping the API future proof and consistent with other targets. Another consistency choice is that `spawn` and `spawn_local` return Result, even though currently on wasm they cannot fail.
-
-There isn't currently a separate api documentation for WASM and docs.rs will not show modules included only
-when the target is WASM. However, the use of the library is identical, so I have chosen not to set up a separate
-documentation. You can check the wasm example in the [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples), as well as the integration tests. You can also clone the repository and run:
-`cargo doc --open --target wasm32-unknown-unknown` or read the source code.
+When not on WASM, the default executor (when you don't choose one explicitly) is the LocalPool from the futures library. On WASM, the default executor is also a Bindgen, based on wasm-bindgen-futures.
 
 
 ## Table of Contents
@@ -63,14 +48,14 @@ With [cargo yaml](https://gitlab.com/storedbox/cargo-yaml):
 ```yaml
 dependencies:
 
-  async_runtime: { version: ^0.3, package: naja_async_runtime }
+  async_runtime: { version: ^0.4, package: naja_async_runtime }
 ```
 
 With raw Cargo.toml
 ```toml
 [dependencies]
 
-   async_runtime = { version = "^0.3", package = "naja_async_runtime" }
+   async_runtime = { version = "^0.4", package = "naja_async_runtime" }
 ```
 
 
@@ -81,12 +66,13 @@ Please check out the [changelog](https://github.com/najamelan/async_runtime/blob
 
 ### Features
 
-There is one feature:
+These features enable extra functionality:
 
-   - `macros`: turns on proc macro attributes to turn an async fn into a sync one. On by default.
-   - `juliex`: turns on the juliex executor.
-   - `localpool`: turns on the localpool. Turned on by default on non WASM targets.
-   - `bindgen`: turn on the wasm-bindgen backed executor. Turned on by default on WASM targets.
+   - `macros`: proc macro attributes to turn an async fn into a sync one. _On by default_.
+   - `juliex`: the juliex executor.
+   - `async_std`: the async-std executor.
+   - `localpool`: the localpool. _Turned on by default on non WASM targets_.
+   - `bindgen`: the wasm-bindgen backed executor. _Turned on by default on WASM targets_.
 
 Various aspects of the library are only available if certain features are enabled. This will be noted in the documentation.
 
@@ -112,6 +98,19 @@ juliex          : { version: ^0.3.0-alpha, optional: true }
 ## Usage
 
 ### Available executors
+
+__Warning:__ Some executors have specific modules (like `rt::async_std`) that make available functionality
+specific to this particular executor. These exist for 2 reasons:
+- The API of the different supported executors varies. It is not always possible to provide a unified API
+  on top of them. To avoid losing functionality, we make it available in these modules.
+- Sometimes providing a unified API imposes overhead like boxing a return type (`rt::spawn_handle`)
+  or running initialization code for worker threads on threadpools that don't support setting up the
+  threadpool with initialization code when it is created. (`rt::spawn` on async-std).
+
+You should be careful using functionality from these modules. They work if you know what executor you
+are using. You shouldn't use these in code that has to abstract out over executors, or that will call into
+such code. Eg. if you are a library author or your futures will call into library code that uses async_runtime,
+you generally shouldn't use these.
 
 #### LocalPool
 
@@ -167,6 +166,30 @@ or that is being waited on by the macro attribute, as soon as that future is don
 even if there are still tasks in the thread pool that haven't finished yet. You must add your own synchronization
 like channels or [`join_all`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/fn.join_all.html) from the futures library to wait on your tasks.
 
+
+#### AsyncStd
+
+- feature: `async_std`
+- attribute: `#[ rt::async_std ]`
+- config: `rt::Config::AsyncStd`
+- targets: not on WASM
+- type: thread pool
+- provider: [async-std](https://crates.io/crates/async-std)
+
+A threadpool. Worker threads created cannot have AsyncStd set automatically as the default executor. This means
+that `rt::spawn` will have some overhead to make sure the worker thread is initialized properly.
+
+Futures will be polled immediately. If you have a top level future that you block one, or that is being waited on
+by the macro attribute, as soon as that future is done, the progam will end, even if there are still tasks
+in the thread pool that haven't finished yet.
+
+You can add your own synchronization like channels or [`join_all`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/fn.join_all.html) from the futures library to wait on your tasks.
+
+There is an `rt::async_std` module with specific functionality from this executor:
+
+- [`spawn`](rt::async_std::spawn): Spawn directly on this executor (avoids the overhead from rt::spawn).
+- [`spawn_handle`](rt::async_std::spawn_handle): Get a `async-std::task::TaskHandle` to await this future.
+  This avoids the boxing that `rt::spawn_handle` has to do.
 
 #### block_on
 

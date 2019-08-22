@@ -8,17 +8,21 @@
 mod config   ;
 mod executor ;
 
-#[ cfg( feature = "juliex"    ) ] mod juliex                          ;
-#[ cfg( feature = "juliex"    ) ] use juliex::Juliex                  ;
-#[ cfg( feature = "juliex"    ) ] pub use naja_runtime_macros::juliex ;
+#[ cfg( feature = "juliex"    ) ] mod juliex                             ;
+#[ cfg( feature = "juliex"    ) ] use juliex::Juliex                     ;
+#[ cfg( feature = "juliex"    ) ] pub use naja_runtime_macros::juliex    ;
+
+#[ cfg( feature = "async_std" ) ] pub mod async_std                      ;
+#[ cfg( feature = "async_std" ) ] use async_std::AsyncStd                ;
+#[ cfg( feature = "async_std" ) ] pub use naja_runtime_macros::async_std ;
 
 #[ cfg( feature = "localpool" ) ] mod localpool                          ;
 #[ cfg( feature = "localpool" ) ] use localpool::LocalPool               ;
 #[ cfg( feature = "localpool" ) ] pub use naja_runtime_macros::localpool ;
 
-#[ cfg( feature = "bindgen" ) ] mod bindgen                          ;
-#[ cfg( feature = "bindgen" ) ] use bindgen::Bindgen                 ;
-#[ cfg( feature = "bindgen" ) ] pub use naja_runtime_macros::bindgen ;
+#[ cfg( feature = "bindgen"   ) ] mod bindgen                            ;
+#[ cfg( feature = "bindgen"   ) ] use bindgen::Bindgen                   ;
+#[ cfg( feature = "bindgen"   ) ] pub use naja_runtime_macros::bindgen   ;
 
 
 pub use
@@ -174,16 +178,16 @@ pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtE
 
 /// Spawn a future and recover the output.
 //
-pub fn spawn_handle<T: Send>( fut: impl Future< Output=T > + Send + 'static ) -> Result< RemoteHandle<T>, RtErr >
+pub fn spawn_handle<T: 'static + Send>( fut: impl Future< Output=T > + Send + 'static )
+
+	-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+
 {
-	EXEC.with( move |exec| -> Result< RemoteHandle<T>, RtErr >
+	EXEC.with( move |exec|
 	{
 		default_init();
 
-		let (fut, handle) = fut.remote_handle();
-		exec.get().unwrap().spawn( fut )?;
-
-		Ok( handle )
+		exec.get().unwrap().spawn_handle( fut )
 	})
 }
 
@@ -191,16 +195,16 @@ pub fn spawn_handle<T: Send>( fut: impl Future< Output=T > + Send + 'static ) ->
 
 /// Spawn a future and recover the output for `!Send` futures.
 //
-pub fn spawn_handle_local<T>( fut: impl Future< Output=T > + 'static ) -> Result< RemoteHandle<T>, RtErr >
+pub fn spawn_handle_local<T: 'static + Send>( fut: impl Future< Output=T > + 'static )
+
+	-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+
 {
-	EXEC.with( move |exec| -> Result< RemoteHandle<T>, RtErr >
+	EXEC.with( move |exec|
 	{
 		default_init();
 
-		let (fut, handle) = fut.remote_handle();
-		exec.get().unwrap().spawn_local( fut )?;
-
-		Ok( handle )
+		exec.get().unwrap().spawn_handle_local( fut )
 	})
 }
 

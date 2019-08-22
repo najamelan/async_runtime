@@ -7,6 +7,11 @@ status = "actively-developed"
 repository = "najamelan/async_runtime"
 
 [dependencies]
+[dependencies.async_std_crate]
+optional = true
+package = "async-std"
+version = "^0.99"
+
 [dependencies.futures-preview]
 default-features = false
 features = ["std"]
@@ -54,6 +59,7 @@ path = "examples/async-file.rs"
 required-features = ["notwasm", "localpool"]
 
 [features]
+async_std = ["async_std_crate"]
 bindgen = ["wasm-bindgen-futures"]
 default = ["macros"]
 juliex = ["juliex_crate"]
@@ -91,7 +97,9 @@ codegen-units = 1
 [target]
 [target."cfg(not( target_arch = \"wasm32\" ))"]
 [target."cfg(not( target_arch = \"wasm32\" ))".dev-dependencies]
-async-std = "^0.99"
+[target."cfg(not( target_arch = \"wasm32\" ))".dev-dependencies.async_std_crate]
+package = "async-std"
+version = "^0.99"
 
 [target."cfg(target_arch = \"wasm32\")"]
 [target."cfg(target_arch = \"wasm32\")".dependencies]

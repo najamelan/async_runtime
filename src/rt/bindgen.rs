@@ -64,4 +64,32 @@ impl Bindgen
 
 		Ok(())
 	}
+
+
+	/// Spawn a future and recover the output.
+	//
+	pub fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
+
+		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+
+	{
+		let (fut, handle) = fut.remote_handle();
+
+		spawn_local( fut );
+		Ok(Box::new( handle ))
+	}
+
+
+
+	/// Spawn a future and recover the output for `!Send` futures.
+	//
+	pub fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
+
+		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+	{
+		let (fut, handle) = fut.remote_handle();
+
+		spawn_local( fut );
+		Ok(Box::new( handle ))
+	}
 }
