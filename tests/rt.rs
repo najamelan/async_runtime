@@ -18,23 +18,6 @@ use
 
 
 
-
-// Verifies that a default executor is chosen when no features are enabled.
-//
-#[ cfg( feature = "localpool" ) ]
-//
-#[test]
-//
-fn default_config()
-{
-	assert!( rt::current_rt().is_none()  );
-
-	rt::spawn( async {} ).expect( "spawn" );
-
-	assert_eq!( Some( rt::Config::LocalPool ), rt::current_rt() );
-}
-
-
 #[ cfg( feature = "localpool" ) ]
 //
 #[test]
@@ -61,22 +44,6 @@ fn thread_pool()
 
 	assert_eq!( Some( rt::Config::Juliex ), rt::current_rt() );
 }
-
-
-
-#[ cfg( feature = "localpool" ) ]
-//
-#[test]
-//
-fn spawn()
-{
-	assert_eq!( None, rt::current_rt() );
-
-	rt::spawn( async {} ).expect( "spawn" );
-
-	assert_eq!( Some( rt::Config::LocalPool ), rt::current_rt() );
-}
-
 
 
 #[test]

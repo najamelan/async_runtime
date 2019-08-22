@@ -101,17 +101,6 @@ pub fn init_allow_same( config: Config ) -> Result< (), RtErr >
 }
 
 
-/// If no executor is set, initialize with defaults (pool if juliex feature is enabled, local pool otherwise)
-//
-fn default_init()
-{
-	if current_rt().is_none()
-	{
-		init( Config::default() ).unwrap();
-	}
-}
-
-
 /// Spawn a future to be run on the default executor (set with [init] or default, depending on `juliex feature`,
 /// see documentation for rt::init).
 ///
@@ -126,8 +115,9 @@ fn default_init()
 #[ cfg_attr( feature = "localpool", doc = r##"
 ```
 use async_runtime::*;
-// This will run on the threadpool. For the local pool you must call [rt::init] and [rt::run].
-//
+
+rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+
 rt::spawn( async
 {
    println!( "async execution" );
@@ -140,7 +130,6 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Rt
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
-		default_init();
 		exec.get().unwrap().spawn( fut )
 	})
 }
@@ -164,7 +153,6 @@ pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtE
 {
 	EXEC.with( move |exec| -> Result< (), RtErr >
 	{
-		default_init();
 		exec.get().unwrap().spawn_local( fut )
 	})
 }
@@ -180,8 +168,6 @@ pub fn spawn_handle<T: 'static + Send>( fut: impl Future< Output=T > + Send + 's
 {
 	EXEC.with( move |exec|
 	{
-		default_init();
-
 		exec.get().unwrap().spawn_handle( fut )
 	})
 }
@@ -197,8 +183,6 @@ pub fn spawn_handle_local<T: 'static + Send>( fut: impl Future< Output=T > + 'st
 {
 	EXEC.with( move |exec|
 	{
-		default_init();
-
 		exec.get().unwrap().spawn_handle_local( fut )
 	})
 }
@@ -213,7 +197,6 @@ pub fn run()
 {
 	EXEC.with( move |exec|
 	{
-		default_init();
 		exec.get().unwrap().run();
 	});
 }
