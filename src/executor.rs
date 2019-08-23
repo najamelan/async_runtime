@@ -1,14 +1,21 @@
 use
 {
-	crate :: { import::*, RtErr } ,
+	crate :: { import::*, Error } ,
 	super :: { Config           } ,
 };
 
 
-#[ cfg( feature = "juliex"    ) ] use super::juliex    :: Juliex    ;
-#[ cfg( feature = "async_std" ) ] use super::async_std :: AsyncStd  ;
-#[ cfg( feature = "localpool" ) ] use super::localpool :: LocalPool ;
-#[ cfg( feature = "bindgen"   ) ] use super::bindgen   :: Bindgen   ;
+
+#[ cfg( feature = "async_std" ) ] pub mod async_std ;
+#[ cfg( feature = "localpool" ) ] pub mod localpool ;
+#[ cfg( feature = "bindgen"   ) ]     mod bindgen   ;
+#[ cfg( feature = "juliex"    ) ]     mod juliex    ;
+
+
+#[ cfg( feature = "async_std" ) ] use async_std :: AsyncStd  ;
+#[ cfg( feature = "bindgen"   ) ] use bindgen   :: Bindgen   ;
+#[ cfg( feature = "juliex"    ) ] use juliex    :: Juliex    ;
+#[ cfg( feature = "localpool" ) ] use localpool :: LocalPool ;
 
 
 /// The different executors we support.
@@ -76,7 +83,7 @@ impl Executor
 	//
 	#[ allow( unused_variables ) ]
 	//
-	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), Error >
 	{
 		match self
 		{
@@ -94,7 +101,7 @@ impl Executor
 	//
 	#[ allow( unused_variables ) ]
 	//
-	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
+	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static ) -> Result< (), Error >
 	{
 		match self
 		{
@@ -118,7 +125,7 @@ impl Executor
 	//
 	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 
 	{
 		match self
@@ -142,7 +149,7 @@ impl Executor
 	//
 	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 
 	{
 		match self

@@ -5,12 +5,12 @@ use crate::{ import::* };
 //
 #[ derive( Debug ) ]
 //
-pub struct RtErr
+pub struct Error
 {
-	kind: RtErrKind,
+	kind: ErrorKind,
 }
 
-impl Error for RtErr {}
+impl StdError for Error {}
 
 
 
@@ -18,10 +18,10 @@ impl Error for RtErr {}
 //
 #[ derive( Copy, Clone, PartialEq, Eq, Debug ) ]
 //
-pub enum RtErrKind
+pub enum ErrorKind
 {
-	/// You should not call [rt::init](crate::rt::init) twice on the same thread. In general if you are a library
-	/// author, you should not call it unless you started the thread. Otherwise just call [rt::spawn](crate::rt::spawn)
+	/// You should not call [rt::init](crate::init) twice on the same thread. In general if you are a library
+	/// author, you should not call it unless you started the thread. Otherwise just call [rt::spawn](crate::spawn)
 	/// and let the client code decide which executor shall be used.
 	//
 	DoubleExecutorInit,
@@ -29,7 +29,7 @@ pub enum RtErrKind
 	/// An backend error happened while trying to spawn:
 	///
 	/// - Spawning on wasm   is infallible.
-	/// - Spawning on juliex is infallible (as long as you don't call [rt::spawn_local](crate::rt::spawn_local)).
+	/// - Spawning on juliex is infallible (as long as you don't call [rt::spawn_local](crate::spawn_local)).
 	/// - Spawning on futures::executor::LocalPool can fail with [futures::task::SpawnError].
 	///   The only reason for this is that the executor was shut down.
 	///
@@ -55,7 +55,7 @@ pub enum RtErrKind
 }
 
 
-impl fmt::Display for RtErrKind
+impl fmt::Display for ErrorKind
 {
 	fn fmt( &self, f: &mut fmt::Formatter<'_> ) -> fmt::Result
 	{
@@ -75,38 +75,38 @@ impl fmt::Display for RtErrKind
 }
 
 
-impl fmt::Display for RtErr
+impl fmt::Display for Error
 {
 	fn fmt( &self, f: &mut fmt::Formatter<'_> ) -> fmt::Result
 	{
-		write!( f, "async_runtime::RtErr: {}", &self.kind )
+		write!( f, "async_runtime::Error: {}", &self.kind )
 	}
 }
 
 
-impl RtErr
+impl Error
 {
 	/// Create a new error from a specific kind.
 	//
-	pub fn new( kind: RtErrKind ) -> Self
+	pub fn new( kind: ErrorKind ) -> Self
 	{
-		RtErr { kind }
+		Error { kind }
 	}
 
 
 	/// Allows matching on the error kind
 	//
-	pub fn kind( &self ) -> &RtErrKind
+	pub fn kind( &self ) -> &ErrorKind
 	{
 		&self.kind
 	}
 }
 
 
-impl From<RtErrKind> for RtErr
+impl From<ErrorKind> for Error
 {
-	fn from( kind: RtErrKind ) -> RtErr
+	fn from( kind: ErrorKind ) -> Error
 	{
-		RtErr { kind }
+		Error { kind }
 	}
 }

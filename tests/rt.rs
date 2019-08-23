@@ -1,10 +1,13 @@
 #![ cfg(not( target_arch = "wasm32" )) ]
 
 // Tested:
-// - ✔ Verify a default config get's chosen when no features are manually enabled
 // - ✔ current_rt for localpool
-// - ✔ current_rt for threadpool
-// - ✔ current_rt for after spawning it should be a threadpool
+// - ✔ current_rt for juliex
+// - ✔ current_rt for async_std
+// - ✔ double executor init error: Local - Local.
+// - ✔ double executor init error: Pool  - Pool.
+// - ✔ double executor init error: Local - Pool.
+// - ✔ double executor init error: Pool  - Local.
 // - ✔ rt::block_on
 // - ✔ rt::block_on with a boxed future
 // - basic methods like spawn and init are being tested in the other integration test files
@@ -12,8 +15,9 @@
 
 use
 {
-	async_runtime :: { *                                   } ,
-	futures       :: { channel::oneshot, future::FutureExt } ,
+	async_runtime as rt,
+
+	futures :: { channel::oneshot, future::FutureExt } ,
 };
 
 
@@ -22,7 +26,7 @@ use
 //
 #[test]
 //
-fn localpool()
+fn init_localpool()
 {
 	assert_eq!( None, rt::current_rt() );
 
@@ -36,7 +40,7 @@ fn localpool()
 //
 #[test]
 //
-fn thread_pool()
+fn init_juliex()
 {
 	assert_eq!( None, rt::current_rt() );
 
@@ -44,6 +48,64 @@ fn thread_pool()
 
 	assert_eq!( Some( rt::Config::Juliex ), rt::current_rt() );
 }
+
+
+#[ cfg( feature = "async_std" ) ]
+//
+#[test]
+//
+fn init_async_std()
+{
+	assert_eq!( None, rt::current_rt() );
+
+	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+
+	assert_eq!( Some( rt::Config::AsyncStd ), rt::current_rt() );
+}
+
+
+
+// Trigger DoubleExecutorInit with 2 threadpool executors.
+//
+#[ cfg( feature = "juliex" ) ] #[test]
+//
+fn double_init_pool()
+{
+	             rt::init( rt::Config::Juliex ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::Juliex );
+
+	assert_eq!( &rt::ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
+}
+
+
+
+// Trigger DoubleExecutorInit with 2 different executors.
+//
+#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
+//
+fn double_init_different()
+{
+	             rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::Juliex  );
+
+	assert_eq!( &rt::ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
+}
+
+
+
+// Trigger DoubleExecutorInit with 2 different executors.
+//
+#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
+//
+fn double_init_inverse()
+{
+	             rt::init( rt::Config::Juliex    ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::LocalPool );
+
+	assert_eq!( &rt::ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
+}
+
+
 
 
 #[test]

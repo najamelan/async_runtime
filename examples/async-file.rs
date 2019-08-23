@@ -4,7 +4,8 @@
 //
 use
 {
-	async_runtime   :: { *                   } ,
+	async_runtime as rt,
+
 	async_std_crate :: { fs::File, io::Error } ,
 };
 

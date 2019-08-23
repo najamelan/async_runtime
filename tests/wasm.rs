@@ -14,8 +14,9 @@
 
 use
 {
+	async_runtime as rt,
+
 	wasm_bindgen_test :: { *                                   } ,
-	async_runtime     :: { *                                   } ,
 	std               :: { rc::Rc, cell::RefCell,              } ,
 	futures           :: { future::FutureExt, channel::oneshot } ,
 };

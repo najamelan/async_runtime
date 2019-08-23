@@ -7,7 +7,8 @@
 //
 use
 {
-	async_runtime :: { *                                          } ,
+	async_runtime as rt,
+
 	std           :: { time::{ Duration, Instant }, thread::sleep } ,
 	futures       :: { future::{ FutureExt, join_all }            } ,
 };

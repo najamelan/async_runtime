@@ -54,13 +54,13 @@ pub fn localpool( _args: TokenStream, item: TokenStream ) -> TokenStream
 		//
 		#vis fn #name( #args ) #ret
 		{
-			async_runtime::rt::init_allow_same( async_runtime::rt::Config::LocalPool ).expect( "no double executor init" );
+			async_runtime::init_allow_same( async_runtime::Config::LocalPool ).expect( "no double executor init" );
 
 			let body = async move #body ;
 
-			let handle = async_runtime::rt::spawn_handle_local( body ).expect( "spawn from proc macro attribute" );
-			async_runtime::rt::localpool::run().expect( "LocalPool executor" );
-			async_runtime::rt::block_on( handle )
+			let handle = async_runtime::spawn_handle_local( body ).expect( "spawn from proc macro attribute" );
+			async_runtime::localpool::run().expect( "LocalPool executor" );
+			async_runtime::block_on( handle )
 		}
 	};
 
@@ -93,9 +93,9 @@ pub fn juliex( _args: TokenStream, item: TokenStream ) -> TokenStream
 		//
 		#vis fn #name( #args ) #ret
 		{
-			async_runtime::rt::init_allow_same( async_runtime::rt::Config::Juliex ).expect( "no double executor init" );
+			async_runtime::init_allow_same( async_runtime::Config::Juliex ).expect( "no double executor init" );
 
-			async_runtime::rt::block_on( async move #body )
+			async_runtime::block_on( async move #body )
 		}
 	};
 
@@ -128,9 +128,9 @@ pub fn async_std( _args: TokenStream, item: TokenStream ) -> TokenStream
 		//
 		#vis fn #name( #args ) #ret
 		{
-			async_runtime::rt::init_allow_same( async_runtime::rt::Config::AsyncStd ).expect( "no double executor init" );
+			async_runtime::init_allow_same( async_runtime::Config::AsyncStd ).expect( "no double executor init" );
 
-			async_runtime::rt::block_on( async move #body )
+			async_runtime::block_on( async move #body )
 		}
 	};
 
@@ -162,11 +162,11 @@ pub fn bindgen( _args: TokenStream, item: TokenStream ) -> TokenStream
 		//
 		#vis fn #name( #args ) #ret
 		{
-			async_runtime::rt::init_allow_same( async_runtime::rt::Config::Bindgen ).expect( "no double executor init" );
+			async_runtime::init_allow_same( async_runtime::Config::Bindgen ).expect( "no double executor init" );
 
 			let body = async move #body ;
 
-			async_runtime::rt::spawn_local( body ).expect( "spawn from proc macro attribute" );
+			async_runtime::spawn_local( body ).expect( "spawn from proc macro attribute" );
 		}
 	};
 

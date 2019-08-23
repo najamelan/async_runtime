@@ -3,10 +3,7 @@
 // Tested:
 //
 // - ✔ shut down local pool before spawning does not generate error.
-// - ✔ double executor init error: Local - Local.
-// - ✔ double executor init error: Pool  - Pool.
-// - ✔ double executor init error: Local - Pool.
-// - ✔ double executor init error: Pool  - Local.
+
 
 #[ cfg( feature = "localpool" ) ]
 //
@@ -14,7 +11,7 @@ use futures::future::ready;
 
 #[ cfg(any( feature = "juliex", feature = "localpool" )) ]
 //
-use async_runtime::*;
+use async_runtime:: { self as rt, ErrorKind };
 
 
 
@@ -49,50 +46,9 @@ fn double_init_local()
 	             rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 	let result = rt::init( rt::Config::LocalPool );
 
-	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
+	assert_eq!( &ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
 
-
-
-// Trigger DoubleExecutorInit with 2 threadpool executors.
-//
-#[ cfg( feature = "juliex" ) ] #[test]
-//
-fn double_init_pool()
-{
-	             rt::init( rt::Config::Juliex ).expect( "no double executor init" );
-	let result = rt::init( rt::Config::Juliex );
-
-	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
-}
-
-
-
-// Trigger DoubleExecutorInit with 2 different executors.
-//
-#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
-//
-fn double_init_different()
-{
-	             rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
-	let result = rt::init( rt::Config::Juliex  );
-
-	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
-}
-
-
-
-// Trigger DoubleExecutorInit with 2 different executors.
-//
-#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
-//
-fn double_init_inverse()
-{
-	             rt::init( rt::Config::Juliex    ).expect( "no double executor init" );
-	let result = rt::init( rt::Config::LocalPool );
-
-	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
-}
 
 
 
@@ -106,5 +62,5 @@ fn spawn_local_on_thread_pool()
 
 	let res = rt::spawn_local( async {} );
 
-	assert_eq!( &RtErrKind::SpawnLocalOnThreadPool, res.unwrap_err().kind() );
+	assert_eq!( &ErrorKind::SpawnLocalOnThreadPool, res.unwrap_err().kind() );
 }

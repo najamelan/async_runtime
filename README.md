@@ -9,7 +9,7 @@
 > A lightweight runtime for global spawning of futures.
 
 The purpose of `async_runtime` is to make it convenient to spawn and run futures.
-It allows library authors to call [`rt::spawn( future );`](rt::spawn) rather than having to take a `T: Executor`,
+It allows library authors to call [`rt::spawn( future );`](spawn) rather than having to take a `T: Executor`,
 yet let client code decide what kind of executor is used. Currently the choice is between
 futures 0.3 `LocalPool` and the [juliex](https://github.com/withoutboats/juliex) threadpool.
 Other implementations might be added later.
@@ -181,8 +181,8 @@ You can add your own synchronization like channels or [`join_all`](https://rust-
 
 There is an `rt::async_std` module with specific functionality from this executor:
 
-- [`spawn`](rt::async_std::spawn): Spawn directly on this executor (avoids the overhead from rt::spawn).
-- [`spawn_handle`](rt::async_std::spawn_handle): Get a `async-std::task::TaskHandle` to await this future.
+- [`spawn`](async_std::spawn): Spawn directly on this executor (avoids the overhead from rt::spawn).
+- [`spawn_handle`](async_std::spawn_handle): Get a `async-std::task::TaskHandle` to await this future.
   This avoids the boxing that `rt::spawn_handle` has to do.
 
 #### block_on
@@ -194,7 +194,7 @@ There is an `rt::async_std` module with specific functionality from this executo
 - type: blocks current thread
 - provider: [`futures::executor::block_on`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/executor/fn.block_on.html)
 
-Please read the documentation of [rt::block_on].
+Please read the documentation of [block_on].
 
 
 ### Examples
@@ -202,7 +202,7 @@ Please read the documentation of [rt::block_on].
 Please have a look in the [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 
 ```rust
-use async_runtime::*;
+use async_runtime as rt;
 
 // in library code:
 //
@@ -216,22 +216,13 @@ fn do_something_in_parallel() -> Result<(), RtErr>
 
 // In client code we might decide that this runs in a LocalPool, instead of a threadpool:
 //
+[ rt::localpool ]
+//
 fn main()
 {
-   // This only fails if you initialize twice. Therefor library code should not do this
-   // unless the library is creating the threads.
-   //
-   rt::init( rt::Config::Local ).expect( "executor init" );
-
-   // Please look at the documentation for rt::spawn for the possible errors here.
+   // Please look at the documentation for spawn for the possible errors here.
    //
    do_something_in_parallel().expect( "Spawn futures" );
-
-   // On a threadpool, futures are polled immediately, but since here we only have one thread,
-   // first we spawn our topmost tasks and then we have to tell the runtime that it's time to
-   // start polling them. This will block the thread until all futures are finished.
-   //
-   rt::run();
 }
 
 ```
@@ -239,13 +230,15 @@ fn main()
 ```rust
 // In this example we run a bunch of tasks in parallel. To verify that
 // they run on different threads we make them all sleep for a second and
-// measure the time passed when they finish.
+// measure the time passed when they finish. If they run on a threadpool
+// time passed for all of them should be around 1 second.
 
 #![ feature( duration_constants ) ]
 
 use
 {
-   async_runtime :: { *                                          } ,
+   async_runtime as rt,
+
    std           :: { time::{ Duration, Instant }, thread::sleep } ,
    futures       :: { future::{ FutureExt, join_all }            } ,
 };
@@ -258,7 +251,7 @@ async fn main()
    let     start = Instant::now();
    let mut tasks = Vec::new();
 
-   for i in 0..8
+   for i in 0..4
    {
       // There isn't currently a convenient way to run tasks on a threadpool until all tasks have
       // finished, or until some shutdown signal is given.

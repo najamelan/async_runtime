@@ -10,8 +10,9 @@
 
 use
 {
+	async_runtime as rt,
+
 	wasm_bindgen_test :: { * } ,
-	async_runtime     :: { * } ,
 };
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -25,5 +26,5 @@ fn double_init()
 	             rt::init( rt::Config::Bindgen ).expect( "no double executor init" );
 	let result = rt::init( rt::Config::Bindgen );
 
-	assert_eq!( &RtErrKind::DoubleExecutorInit, result.unwrap_err().kind() );
+	assert_eq!( &rt::ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }

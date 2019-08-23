@@ -1,6 +1,6 @@
 //! Provides localpool executor specific functionality.
 
-use crate :: { import::*, RtErr, RtErrKind };
+use crate :: { self as rt, import::*, Error, ErrorKind };
 
 
 /// An executor that uses [futures 0.3 LocalPool](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/executor/struct.LocalPool.html) or [LocalPool](https://docs.rs/LocalPool) threadpool under the hood.
@@ -54,7 +54,7 @@ impl LocalPool
 	/// You can call [crate::rt::run] and spawn again afterwards.
 	///
 	//
-	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), Error >
 	{
 		self.spawn_local( fut )
 	}
@@ -70,18 +70,18 @@ impl LocalPool
 	///
 	/// ### Errors
 	///
-	/// - When using `Config::LocalPool` (currently LocalPool), this method will return an error of kind [RtErrKind::SpawnLocalOnThreadPool](crate::RtErrKind::SpawnLocalOnThreadPool).
+	/// - When using `Config::LocalPool` (currently LocalPool), this method will return an error of kind [ErrorKind::SpawnLocalOnThreadPool](crate::ErrorKind::SpawnLocalOnThreadPool).
 	///   Since the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
 	/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
 	/// error if the executor has been shut down. `spawn_local` will return an error of kind
-	///  [RtErrKind::Spawn](crate::RtErrKind::Spawn).
+	///  [ErrorKind::Spawn](crate::ErrorKind::Spawn).
 	///
 	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
 	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
 	//
-	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
+	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), Error >
 	{
-		self.spawner.borrow_mut().spawn_local( fut ).map_err( |_| RtErrKind::Spawn.into() )
+		self.spawner.borrow_mut().spawn_local( fut ).map_err( |_| ErrorKind::Spawn.into() )
 	}
 
 
@@ -90,7 +90,7 @@ impl LocalPool
 	//
 	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 
 	{
 		let (fut, handle) = fut.remote_handle();
@@ -105,7 +105,7 @@ impl LocalPool
 	//
 	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 	{
 		let (fut, handle) = fut.remote_handle();
 
@@ -119,15 +119,15 @@ impl LocalPool
 /// run this after spawning on the local pool or futures won't be polled.
 /// Do not call it from within a spawned task, or your program will hang or panic.
 //
-pub fn run() -> Result< (), RtErr >
+pub fn run() -> Result< (), Error >
 {
-	super::EXEC.with( move |exec|
+	rt::EXEC.with( move |exec|
 	{
 		if let super::Executor::LocalPool( e ) = exec.get().unwrap()
 		{
 			Ok( e.run() )
 		}
 
-		else { Err( RtErr::from( RtErrKind::WrongExecutor ) ) }
+		else { Err( Error::from( ErrorKind::WrongExecutor ) ) }
 	})
 }

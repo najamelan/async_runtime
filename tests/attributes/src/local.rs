@@ -10,7 +10,8 @@
 
 use
 {
-	async_runtime   :: { rt        } ,
+	async_runtime as rt,
+
 	std             :: { env       } ,
 	futures::future :: { FutureExt } ,
 };

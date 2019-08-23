@@ -1,6 +1,6 @@
 use
 {
-	async_runtime :: { *                  } ,
+	async_runtime :: { self as rt         } ,
 	wasm_bindgen  :: { prelude::*, JsCast } ,
 	web_sys       :: { HtmlElement        } ,
 };

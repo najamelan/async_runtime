@@ -11,8 +11,9 @@
 
 use
 {
+	async_runtime as rt,
+
 	wasm_bindgen_test :: { * } ,
-	async_runtime     :: { * } ,
 };
 
 wasm_bindgen_test_configure!(run_in_browser);

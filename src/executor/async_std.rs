@@ -1,6 +1,6 @@
 //! Module containing functionality specific to async-std.
 //
-use crate :: { import::*, rt, RtErr, RtErrKind };
+use crate :: { self as rt, import::*, Error, ErrorKind };
 
 
 
@@ -36,7 +36,7 @@ impl AsyncStd
 	/// You can call [crate::rt::run] and spawn again afterwards.
 	///
 	//
-	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), Error >
 	{
 		//
 		async_std_crate::task::spawn( async move
@@ -63,18 +63,18 @@ impl AsyncStd
 	///
 	/// ### Errors
 	///
-	/// - When using `Config::AsyncStd` (currently AsyncStd), this method will return an error of kind [RtErrKind::SpawnLocalOnThreadPool](crate::RtErrKind::SpawnLocalOnThreadPool).
+	/// - When using `Config::AsyncStd` (currently AsyncStd), this method will return an error of kind [ErrorKind::SpawnLocalOnThreadPool](crate::ErrorKind::SpawnLocalOnThreadPool).
 	///   Since the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
 	/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
 	/// error if the executor has been shut down. `spawn_local` will return an error of kind
-	///  [RtErrKind::Spawn](crate::RtErrKind::Spawn).
+	///  [ErrorKind::Spawn](crate::ErrorKind::Spawn).
 	///
 	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
 	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
 	//
-	pub(crate) fn spawn_local( &self, _: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
+	pub(crate) fn spawn_local( &self, _: impl Future< Output = () > + 'static  ) -> Result< (), Error >
 	{
-		Err( RtErrKind::SpawnLocalOnThreadPool.into() )
+		Err( ErrorKind::SpawnLocalOnThreadPool.into() )
 	}
 
 
@@ -82,7 +82,7 @@ impl AsyncStd
 	//
 	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 
 	{
 		let (fut, handle) = fut.remote_handle();
@@ -97,10 +97,10 @@ impl AsyncStd
 	//
 	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, _: impl Future< Output=T > + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 
 	{
-		Err( RtErrKind::SpawnLocalOnThreadPool.into() )
+		Err( ErrorKind::SpawnLocalOnThreadPool.into() )
 	}
 }
 

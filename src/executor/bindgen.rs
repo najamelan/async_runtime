@@ -1,4 +1,4 @@
-use crate :: { import::*, RtErr };
+use crate :: { import::*, Error };
 
 
 /// An executor that uses [futures 0.3 LocalPool](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/executor/struct.LocalPool.html) or [Bindgen](https://docs.rs/Bindgen) threadpool under the hood.
@@ -33,7 +33,7 @@ impl Bindgen
 	/// You can call [crate::rt::run] and spawn again afterwards.
 	///
 	//
-	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), Error >
 	{
 		self.spawn_local( fut )
 	}
@@ -49,16 +49,16 @@ impl Bindgen
 	///
 	/// ### Errors
 	///
-	/// - When using `Config::Bindgen` (currently Bindgen), this method will return an error of kind [RtErrKind::SpawnLocalOnThreadPool](crate::RtErrKind::SpawnLocalOnThreadPool).
+	/// - When using `Config::Bindgen` (currently Bindgen), this method will return an error of kind [ErrorKind::SpawnLocalOnThreadPool](crate::ErrorKind::SpawnLocalOnThreadPool).
 	///   Since the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
 	/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
 	/// error if the executor has been shut down. `spawn_local` will return an error of kind
-	///  [RtErrKind::Spawn](crate::RtErrKind::Spawn).
+	///  [ErrorKind::Spawn](crate::ErrorKind::Spawn).
 	///
 	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
 	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
 	//
-	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
+	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), Error >
 	{
 		spawn_local( fut );
 
@@ -70,7 +70,7 @@ impl Bindgen
 	//
 	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 
 	{
 		let (fut, handle) = fut.remote_handle();
@@ -85,7 +85,7 @@ impl Bindgen
 	//
 	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
+		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
 	{
 		let (fut, handle) = fut.remote_handle();
 

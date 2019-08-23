@@ -10,7 +10,8 @@
 //
 use
 {
-	async_runtime :: { *                     } ,
+	async_runtime as rt,
+
 	std           :: { rc::Rc, cell::RefCell } ,
 	futures       :: { future::FutureExt     } ,
 };

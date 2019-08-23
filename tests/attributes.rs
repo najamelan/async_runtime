@@ -16,8 +16,9 @@ use
 //
 use
 {
-	async_runtime :: { rt        } ,
-	futures       :: { FutureExt } ,
+	async_runtime as rt,
+
+	futures :: { FutureExt } ,
 };
 
 

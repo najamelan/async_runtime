@@ -2,7 +2,7 @@
 //!
 //! run with `cargo run --example attribute --features macros localpool`
 //
-use async_runtime::*;
+use async_runtime as rt;
 
 
 async fn hello()
