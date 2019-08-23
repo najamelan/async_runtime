@@ -1,73 +1,81 @@
-language: rust
-rust    : nightly
+  language: rust
+  rust    : nightly
 
-# Need to cache the whole `.cargo` directory to keep .crates.toml for
-# cargo-update to work
-#
-cache:
-  directories:
-    - /home/travis/.cargo
+  # Need to cache the whole `.cargo` directory to keep .crates.toml for
+  # cargo-update to work
+  #
+  cache:
+    directories:
+      - /home/travis/.cargo
 
-# But don't cache the cargo registry
-# and remove wasm-pack binary to avoid the installer asking confirmation for overwriting it.
-#
-before_cache:
-  - rm -rf /home/travis/.cargo/git
-  - rm -rf /home/travis/.cargo/registry
-  - rm -rf /home/travis/.cargo/bin/wasm-pack
+  # But don't cache the cargo registry
+  # and remove wasm-pack binary to avoid the installer asking confirmation for overwriting it.
+  #
+  before_cache:
+    - rm -rf /home/travis/.cargo/git
+    - rm -rf /home/travis/.cargo/registry
+    - rm -rf /home/travis/.cargo/bin/wasm-pack
 
 
-branches:
-  only:
-    - master
-    - dev
+  branches:
+    only:
+      - master
+      - dev
 
-matrix:
+  matrix:
 
-  include:
+    include:
 
-    # This won't work because we use a nightly feature in dev-dependencies and the feature leaks:
-    #
-    # - rust  : stable
-    #   script: cargo check
-
-    - os: linux
-
-      # for wasm tests
+      # This won't work because we use a nightly feature in dev-dependencies and the feature leaks:
       #
-      install:
-        - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      # - rust  : stable
+      #   script: cargo check
+
+      - os: linux
+
+        # for wasm tests
+        #
+        install:
+          - cargo install --force wasm-bindgen-cli
+          - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+        addons:
+          firefox: latest
 
 
-      script:
-        - cargo test
-        - cargo test --features localpool
-        - cargo test --features juliex
-        - cargo test --features localpool juliex
-        - cargo doc --no-deps --all-features
-
-        - wasm-pack test --firefox --headless
-        - wasm-pack test --chrome  --headless -- --features bindgen
-
-        - wasm-pack test  --firefox --headless --release
-        - wasm-pack test  --chrome  --headless --release -- --features bindgen
+        script:
+          - bash ci.bash
 
 
-    - os: osx
+      - os: osx
 
-      script:
-        - cargo test
-        - cargo test --features localpool
-        - cargo test --features juliex
-        - cargo test --features localpool juliex
+        # for wasm tests
+        #
+        install:
+          - cargo install --force wasm-bindgen-cli
+          - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+        addons:
+          firefox: latest
+
+        script:
+          - bash ci.bash
 
 
-    - os: windows
 
-      script:
-        - cargo test
-        - cargo test --features localpool
-        - cargo test --features juliex
-        - cargo test --features localpool juliex
+      - os: windows
+
+        # for wasm tests
+        #
+        install:
+          - cargo install --force wasm-bindgen-cli
+          - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+        addons:
+          firefox: latest
+
+        script:
+          - bash ci.bash
+
 
 

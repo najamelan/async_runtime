@@ -201,8 +201,8 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Er
 	{
 		match exec.get()
 		{
-			Some(e) => e.spawn( fut )                           ,
-			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+			Some(e) => e.spawn( fut )                                 ,
+			None    => Err( ErrorKind::NoExecutorInitialized.into() ) ,
 		}
 	})
 }
@@ -233,8 +233,8 @@ pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), Err
 	{
 		match exec.get()
 		{
-			Some(e) => e.spawn_local( fut )                     ,
-			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+			Some(e) => e.spawn_local( fut )                           ,
+			None    => Err( ErrorKind::NoExecutorInitialized.into() ) ,
 		}
 	})
 }
@@ -282,8 +282,8 @@ pub fn spawn_handle<T: Send + 'static>( fut: impl Future< Output=T > + Send + 's
 	{
 		match exec.get()
 		{
-			Some(e) => e.spawn_handle( fut )                    ,
-			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+			Some(e) => e.spawn_handle( fut )                          ,
+			None    => Err( ErrorKind::NoExecutorInitialized.into() ) ,
 		}
 	})
 }
@@ -307,8 +307,8 @@ pub fn spawn_handle_local<T: 'static + Send>( fut: impl Future< Output=T > + 'st
 	{
 		match exec.get()
 		{
-			Some(e) => e.spawn_handle_local( fut )              ,
-			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+			Some(e) => e.spawn_handle_local( fut )                    ,
+			None    => Err( ErrorKind::NoExecutorInitialized.into() ) ,
 		}
 	})
 }
