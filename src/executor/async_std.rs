@@ -4,8 +4,7 @@ use crate :: { self as rt, import::*, Error, ErrorKind };
 
 
 
-/// An executor that uses [futures 0.3 LocalPool](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/executor/struct.LocalPool.html) or [AsyncStd](https://docs.rs/async-std) task under the hood.
-/// Normally you don't need to construct this yourself, just use the [`rt`](crate::rt) module methods to spawn futures.
+// Async-std does not currently expose a handle to control the threadpool, so it's zero sized and zero control.
 //
 #[ derive( Debug, Default ) ]
 //
@@ -15,31 +14,17 @@ pub(crate) struct AsyncStd {}
 
 impl AsyncStd
 {
-	/// Create a new AsyncStd.
-	//
 	pub(crate) fn new() -> Self
 	{
 		Self {}
 	}
 
 
-	/// Spawn a future to be run on the default executor. Note that this requires the
-	/// future to be `Send` in order to work for both the local pool and the threadpool.
-	/// When you need to spawn futures that are not `Send` on the local pool, please use
-	/// [`spawn_local`](AsyncStd::spawn_local).
-	///
-	/// ### Errors
-	///
-	/// - When using `Config::AsyncStd` (currently AsyncStd), this method is infallible.
-	/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
-	/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
-	/// You can call [crate::rt::run] and spawn again afterwards.
-	///
-	//
 	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), Error >
 	{
+		// async-std does not allow initializing worker threads, so we need to check on each spawn.
 		//
-		async_std_crate::task::spawn( async move
+		async_std_crate::task::spawn( async
 		{
 			if rt::current_rt().is_none()
 			{
@@ -53,51 +38,39 @@ impl AsyncStd
 	}
 
 
-	/// Spawn a `!Send` future to be run on the LocalPool (current thread). Note that the executor must
-	/// be created with a local pool configuration. This will err if you try to call this on an executor
-	/// set up with a threadpool.
-	///
-	/// Note that this will not complain if you call this with a `Send` future, but there is no reason to
-	/// do so, and it will put restrictions on users of your code, as they will no longer be able to run
-	/// your code on a thread that spawns on a threadpool.
-	///
-	/// ### Errors
-	///
-	/// - When using `Config::AsyncStd` (currently AsyncStd), this method will return an error of kind [ErrorKind::SpawnLocalOnThreadPool](crate::ErrorKind::SpawnLocalOnThreadPool).
-	///   Since the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
-	/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
-	/// error if the executor has been shut down. `spawn_local` will return an error of kind
-	///  [ErrorKind::Spawn](crate::ErrorKind::Spawn).
-	///
-	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
-	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
-	//
+
 	pub(crate) fn spawn_local( &self, _: impl Future< Output = () > + 'static  ) -> Result< (), Error >
 	{
 		Err( ErrorKind::SpawnLocalOnThreadPool.into() )
 	}
 
 
-	/// Spawn a future and recover the output.
+
+	// We don't need to user remote_handle, because async-std provides a handle out of the box.
 	//
 	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+		-> Result< Box< dyn Future< Output=T > + Send + 'static + Unpin >, Error >
 
 	{
-		let (fut, handle) = fut.remote_handle();
+		let task = async
+		{
+			if rt::current_rt().is_none()
+			{
+				rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+			}
 
-		self.spawn( fut )?;
-		Ok(Box::new( handle ))
+			fut.await
+		};
+
+		Ok( Box::new( async_std_crate::task::spawn( task )))
 	}
 
 
 
-	/// Spawn a future and recover the output for `!Send` futures.
-	//
 	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, _: impl Future< Output=T > + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+		-> Result< Box< dyn Future< Output=T > + 'static + Unpin >, Error >
 
 	{
 		Err( ErrorKind::SpawnLocalOnThreadPool.into() )
@@ -105,19 +78,45 @@ impl AsyncStd
 }
 
 
-/// Spawn directly on async-std::task. This avoids the overhead from `rt::spawn` which
-/// has to make sure that the worker thread is configured to spawn on async-std.
-///
-/// If you spawn with this function, but the spawned future uses `rt::spawn`,
-/// it might spawn on a worker thread of the async-std threadpool which has not got
-/// an executor set, so it will spawn on the default (LocalPool), which will not start
-/// polling the future.
-//
-pub fn spawn<F, T>( fut: F ) -> async_std_crate::task::JoinHandle<T>
 
-	where
-		F: Future<Output = T> + Send + 'static,
-		T: Send + 'static,
+/// AsyncStd specific version of [`spawn_handle`](crate::spawn_handle). This avoids the need for
+/// boxing. The worker thread will be set up to further spawn on AsyncStd.
+///
+/// ### Errors
+///
+/// - If you call this from a thread which has no executor set up, this will return
+/// [ErrorKind::NoExecutorInitialized].
+/// - If you call this from a thread which has another executor set up, this will return
+/// [ErrorKind::WrongExecutor].
+//
+pub fn spawn_handle<F, T>( fut: F ) -> Result< async_std_crate::task::JoinHandle<T>, Error >
+
+	where F: Future<Output = T> + Send + 'static ,
+	      T: Send + 'static                      ,
+
 {
-	async_std_crate::task::spawn( fut )
+	// Order of the match arms is important!
+	//
+	match rt::current_rt()
+	{
+		None => Err( ErrorKind::NoExecutorInitialized )?,
+
+		Some( rt::Config::AsyncStd ) =>
+		{
+			let task = async
+			{
+				if rt::current_rt().is_none()
+				{
+					rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+				}
+
+				fut.await
+			};
+
+			Ok( async_std_crate::task::spawn( task ) )
+		}
+
+
+		Some(_) => Err( ErrorKind::WrongExecutor )?,
+	}
 }

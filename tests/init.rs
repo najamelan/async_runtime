@@ -1,5 +1,6 @@
 #![ cfg(not( target_arch = "wasm32" )) ]
 
+
 // Tested:
 // - ✔ current_rt for localpool
 // - ✔ current_rt for juliex
@@ -8,10 +9,8 @@
 // - ✔ double executor init error: Pool  - Pool.
 // - ✔ double executor init error: Local - Pool.
 // - ✔ double executor init error: Pool  - Local.
-// - ✔ rt::block_on
-// - ✔ rt::block_on with a boxed future
-// - ✔ spawn* return error when no executor initialized
-//
+
+
 use
 {
 	async_runtime as rt,
@@ -64,11 +63,26 @@ fn init_async_std()
 
 
 
-// Trigger DoubleExecutorInit with 2 threadpool executors.
+
+
+// Trigger DoubleExecutorInit with 2 localpool executors.
+//
+#[ cfg( feature = "localpool" ) ] #[test]
+//
+fn double_init_local()
+{
+	             rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+	let result = rt::init( rt::Config::LocalPool );
+
+	assert_eq!( &rt::ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
+}
+
+
+// Trigger DoubleExecutorInit with 2 juliex executors.
 //
 #[ cfg( feature = "juliex" ) ] #[test]
 //
-fn double_init_pool()
+fn double_init_juliex()
 {
 	             rt::init( rt::Config::Juliex ).expect( "no double executor init" );
 	let result = rt::init( rt::Config::Juliex );
@@ -106,71 +120,61 @@ fn double_init_inverse()
 
 
 
-// Trigger DoubleExecutorInit with 2 different executors.
-//
-#[test]
-//
-fn spawn_without_init()
-{
-	let result = rt::spawn( async {} );
 
-	assert_eq!( &rt::ErrorKind::NoExecutorInitialized, result.unwrap_err().kind() );
+
+// Trigger DoubleExecutorInit with 2 localpool executors.
+//
+#[ cfg( feature = "localpool" ) ] #[test]
+//
+fn double_init_allow_same_local()
+{
+	             rt::init_allow_same( rt::Config::LocalPool ).expect( "no double executor init" );
+	let result = rt::init_allow_same( rt::Config::LocalPool );
+
+	assert!( result.is_ok() );
+}
+
+
+// Trigger DoubleExecutorInit with 2 juliex executors.
+//
+#[ cfg( feature = "juliex" ) ] #[test]
+//
+fn double_init_allow_same_juliex()
+{
+	             rt::init_allow_same( rt::Config::Juliex ).expect( "no double executor init" );
+	let result = rt::init_allow_same( rt::Config::Juliex );
+
+	assert!( result.is_ok() );
 }
 
 
 
 // Trigger DoubleExecutorInit with 2 different executors.
 //
-#[test]
+#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
 //
-fn spawn_local_without_init()
+fn double_init_allow_same_different()
 {
-	let result = rt::spawn_local( async {} );
+	             rt::init_allow_same( rt::Config::LocalPool ).expect( "no double executor init" );
+	let result = rt::init_allow_same( rt::Config::Juliex  );
 
-	assert_eq!( &rt::ErrorKind::NoExecutorInitialized, result.unwrap_err().kind() );
+	assert_eq!( &rt::ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
 
 
 
 // Trigger DoubleExecutorInit with 2 different executors.
 //
-#[test]
+#[ cfg(all( feature = "localpool", feature = "juliex" )) ] #[test]
 //
-fn spawn_handle_without_init()
+fn double_init_allow_same_inverse()
 {
-	let handle = rt::spawn_handle( async {} );
+	             rt::init_allow_same( rt::Config::Juliex    ).expect( "no double executor init" );
+	let result = rt::init_allow_same( rt::Config::LocalPool );
 
-	if let Err(error) = handle
-	{
-		assert_eq!( &rt::ErrorKind::NoExecutorInitialized, error.kind() );
-	}
-
-	else
-	{
-		panic!( "spawn_handle should return an error when no executor initialized" );
-	}
+	assert_eq!( &rt::ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
 }
 
-
-
-// Trigger DoubleExecutorInit with 2 different executors.
-//
-#[test]
-//
-fn spawn_handle_local_without_init()
-{
-	let handle = rt::spawn_handle_local( async {} );
-
-	if let Err(error) = handle
-	{
-		assert_eq!( &rt::ErrorKind::NoExecutorInitialized, error.kind() );
-	}
-
-	else
-	{
-		panic!( "spawn_handle should return an error when no executor initialized" );
-	}
-}
 
 
 

@@ -36,7 +36,7 @@ mod import
 	};
 
 
-	#[ cfg(any( feature = "bindgen", feature = "localpool", feature = "juliex", feature = "async_std" )) ]
+	#[ cfg(any( feature = "bindgen", feature = "localpool", feature = "juliex" )) ]
 	//
 	pub(crate) use	futures::future::FutureExt;
 
@@ -71,7 +71,7 @@ mod import
 // --- API --- //
 /////////////////
 
-mod error;
+mod error    ;
 mod config   ;
 mod executor ;
 
@@ -79,8 +79,8 @@ pub use error::*;
 pub use config::*;
 
 
-#[ cfg( feature = "async_std" ) ] pub use executor::async_std ;
 #[ cfg( feature = "localpool" ) ] pub use executor::localpool ;
+#[ cfg( feature = "async_std" ) ] pub use executor::async_std ;
 
 
 #[ cfg(all( feature = "macros", feature = "juliex"    )) ] pub use naja_runtime_macros::juliex    ;
@@ -103,21 +103,24 @@ std::thread_local!
 
 
 
-/// Set the executor to use by on this thread. Run this before calls to [spawn]\(_*\).
+/// Set the executor to use by on this thread. Run this before calls to [`spawn`]\(_*\).
 ///
 /// If you are a library author, don't call this unless you create the thread, otherwise it's up to client code to
-/// decide which executor to use. Just call [spawn].
+/// decide which executor to use. Just call [`spawn`].
 ///
 /// ### Errors
 ///
-/// This method will fail with [ErrorKind::DoubleExecutorInit] if you call it twice on the same thread. There is
-/// [init_allow_same] which will not return an error if you try to init with the same executor twice.
+/// This method will fail with [`ErrorKind::DoubleExecutorInit`] if you call it twice on the same thread. There is
+/// [`init_allow_same`] which will not return an error if you try to init with the same executor twice.
 ///
 /// ### Example
 #[cfg_attr(feature = "localpool", doc = r##"
 ```rust
 use async_runtime as rt;
 
+// Will be used for spawning on the current thread only, if you create other threads,
+// you have to init them too, and you can choose a different executor on different threads.
+//
 rt::init( rt::Config::LocalPool ).expect( "Set thread executor" );
 
 rt::spawn( async {} ).expect( "spawn future" );
@@ -134,8 +137,9 @@ pub fn init( config: Config ) -> Result< (), Error >
 	})
 }
 
-/// Set the executor to use by default. The difference with [init] is that this will not return
-/// a [ErrorKind::DoubleExecutorInit] error if you init with the same executor twice. It will still err
+
+/// Set the executor to use for this thread. The difference with [`init`] is that this will not return
+/// a [`ErrorKind::DoubleExecutorInit`] error if you init with the same executor twice. It will still err
 /// if you try to set 2 different executors for this thread.
 ///
 /// This can sometimes be convenient for example if you would like to make two async fn sync in the
@@ -153,15 +157,28 @@ pub fn init_allow_same( config: Config ) -> Result< (), Error >
 }
 
 
-/// Spawn a future to be run on the default executor (set with [init] or default, depending on `juliex feature`,
-/// see documentation for rt::init).
+/// Spawn a future to be run on the thread specified executor (set with [`init`]).
+///
+/// This method returns a result. I understand that this is an inconveniece, but this is a interface that
+/// abstracts out over all supported executors. Some of them don't have an infallible spawn method, so we return
+/// a result even though on most executors spawning is infallible.
+///
+/// Most of the time failing to spawn is rather fatal, so often using "expect" is fine. In
+/// application code you will know which executor you use, so you know if it's fallible, but library authors
+/// need to take into account that this might be fallible and consider how to recover from it.
+///
+/// [`spawn`] requires a `Send` bound on the future. See [`spawn_local`] if you have to spasn `!Send` futures.
+///
+/// [`spawn`] requires a `()` Output on the future. If you need to wait for the future to finish and/or recover
+/// a result from the computation, see: [`spawn_handle`].
 ///
 /// ### Errors
 ///
-/// - When using `Config::Juliex` (currently juliex), this method is infallible.
-/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
-/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
-/// You can call [localpool::run] and spawn again afterwards.
+/// - This method is infallible on: _juliex_, _async-std_, _bindgen_.
+/// - On the _localpool_ executor, this method can return a [`ErrorKind::Spawn`] if the executor has been shut down.
+///   See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
+///   You can call [localpool::run] and spawn again afterwards.
+/// - If you call this without an initialized executor, [`ErrorKind::NoExecutorInitialized`] is returned.
 ///
 /// ### Example
 #[ cfg_attr( feature = "localpool", doc = r##"
@@ -174,7 +191,7 @@ rt::spawn( async
 {
    println!( "async execution" );
 
-});
+}).expect( "spawn on localpool" );
 ```
 "##)]
 //
@@ -182,69 +199,124 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Er
 {
 	EXEC.with( move |exec| -> Result< (), Error >
 	{
-		exec.get().unwrap().spawn( fut )
+		match exec.get()
+		{
+			Some(e) => e.spawn( fut )                           ,
+			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+		}
 	})
 }
 
 
-/// Spawn a future to be run on the LocalPool (current thread). This will return an error
-/// if the current executor is the threadpool.
+/// Spawn a future to be run on the current thread. This will return an error if the current executor is a threadpool.
+/// Currently works with _bindgen_ and _localpool_.
 ///
 /// Does exactly the same as [spawn], but does not require the future to be [Send]. If your
-/// future is [Send], you can just use [spawn]. It will always spawn on the default executor.
+/// future is [Send], you can just use [spawn]. It will spawn on the executor the current thread is configured with
+/// either way..
+///
+/// __Warning__: If you are a library author and you use this, you oblige client code to configure the thread in which
+/// this runs with a single threaded executor.
 ///
 /// ### Errors
 ///
-/// - When using `Config::Juliex` (currently juliex), this method will return a [ErrorKind::Spawn](crate::ErrorKind::Spawn). Since
-/// the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
-/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
-/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
-/// You can call [localpool::run] and spawn again afterwards.
+/// - When using with a threaded executor, this method will return a [`ErrorKind::SpawnLocalOnThreadPool`]. Since
+/// the signature doesn't require [`Send`] on the future, it can never be sent on a threadpool.
+/// - When using _localpool_, this method can return a spawn error if the executor has been shut down.
+///   See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
+///   You can call [localpool::run] and spawn again afterwards.
+/// - If you call this without an initialized executor, [`ErrorKind::NoExecutorInitialized`] is returned.
 //
 pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), Error >
 {
-	EXEC.with( move |exec| -> Result< (), Error >
+	EXEC.with( move |exec|
 	{
-		exec.get().unwrap().spawn_local( fut )
+		match exec.get()
+		{
+			Some(e) => e.spawn_local( fut )                     ,
+			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+		}
 	})
 }
 
 
+/// Spawn a future and recover the output or just `.await` it to make sure it's finished.
+/// Since different executors return different types, we have to Box the returned future.
+///
+/// To avoid boxing, use [`spawn`] with [`FutureExt::remote_handle`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/trait.FutureExt.html#method.remote_handle). Or use providers directly, eg. async-std always
+/// returns a `JoinHandle`. You could call async-std's spawn method directly, knowing that worker threads might
+/// not be set up to end further calls to [`spawn`] to the async-std executor. Only do this if the spawned future
+/// will not call [`spawn`] and friends.
+///
+/// ### Example
+#[ cfg_attr( all( feature = "juliex", feature = "macros" ), doc = r##"
+```
+use async_runtime as rt;
 
-/// Spawn a future and recover the output.
+#[ rt::juliex ]
 //
-pub fn spawn_handle<T: 'static + Send>( fut: impl Future< Output=T > + Send + 'static )
+async fn main()
+{
+   let handle = rt::spawn_handle( async
+   {
+      "hello"
 
-	-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+   }).expect( "spawn on localpool" );
+
+   assert_eq!( "hello", handle.await );
+}
+
+```
+"##)]
+///
+/// ### Errors
+/// - If you call this without an initialized executor, [`ErrorKind::NoExecutorInitialized`] is returned.
+
+//
+pub fn spawn_handle<T: Send + 'static>( fut: impl Future< Output=T > + Send + 'static )
+
+	-> Result< Box< dyn Future< Output=T > + Unpin + Send + 'static >, Error >
 
 {
 	EXEC.with( move |exec|
 	{
-		exec.get().unwrap().spawn_handle( fut )
+		match exec.get()
+		{
+			Some(e) => e.spawn_handle( fut )                    ,
+			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+		}
 	})
 }
 
 
 
-/// Spawn a future and recover the output for `!Send` futures.
+/// Spawn a future and recover the output for `!Send` futures. This does the same as [`spawn_handle`]
+/// except the future does not have to be `Send`. Note that `Future::Output` still has to be `Send`.
+/// We use [`FutureExt::remote_handle`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/trait.FutureExt.html#method.remote_handle) behind the scenes, and that requires the output to be Send,
+/// even though it shoulnd't have to be.
+///
+/// ### Errors
+/// - If you call this without an initialized executor, [`ErrorKind::NoExecutorInitialized`] is returned.
 //
 pub fn spawn_handle_local<T: 'static + Send>( fut: impl Future< Output=T > + 'static )
 
-	-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+	-> Result< Box< dyn Future< Output=T > + 'static + Unpin >, Error >
 
 {
 	EXEC.with( move |exec|
 	{
-		exec.get().unwrap().spawn_handle_local( fut )
+		match exec.get()
+		{
+			Some(e) => e.spawn_handle_local( fut )              ,
+			None    => Err( ErrorKind::NoExecutorInitialized )? ,
+		}
 	})
 }
 
 
 
 
-/// Get the configuration for the current default executor.
-/// Note that if this returns `None` and you call [`spawn`], a default executor
-/// will be initialized, after which this will no longer return `None`.
+/// Which executor is configured for the current thread?
 ///
 /// If you are a library author you can use this to generate a clean error message
 /// if you have a hard requirement for a certain executor.
@@ -263,10 +335,10 @@ pub fn current_rt() -> Option<Config>
 /// This just forwards to `futures::executor::block_on` under the hood.
 ///
 /// **Warning** - this method does not play well with the rest of the executors. If you
-/// use the localpool executor, only the future you pass here will be polled. futures
+/// use the localpool executor, only the future you pass here will be polled. Futures
 /// that are "spawned" will just not run.
 ///
-/// If you use juliex, the threadpool will continue working, but block_on will not wait
+/// If you use juliex or async_std, the threadpool will continue working, but block_on will not wait
 /// until all your futures have finished. As soon as the future you block on finishes,
 /// if `block_on` is the last statement of your program, the program will just end, regardless
 /// of other futures still on the threadpool.

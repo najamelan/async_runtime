@@ -20,27 +20,25 @@ impl StdError for Error {}
 //
 pub enum ErrorKind
 {
-	/// You should not call [rt::init](crate::init) twice on the same thread. In general if you are a library
-	/// author, you should not call it unless you started the thread. Otherwise just call [rt::spawn](crate::spawn)
+	/// You should not call [init](crate::init) twice on the same thread. In general if you are a library
+	/// author, you should not call it unless you started the thread. Otherwise just call [spawn](crate::spawn)
 	/// and let the client code decide which executor shall be used.
+	/// If you need to call [init](crate::init) several times, you can either verify no executor is set first
+	/// (with [current_rt](crate::current_rt)) or use [init_allow_same](crate::init_allow_same)
 	//
 	DoubleExecutorInit,
 
 	/// An backend error happened while trying to spawn:
 	///
-	/// - Spawning on wasm   is infallible.
-	/// - Spawning on juliex is infallible (as long as you don't call [rt::spawn_local](crate::spawn_local)).
-	/// - Spawning on futures::executor::LocalPool can fail with [futures::task::SpawnError].
-	///   The only reason for this is that the executor was shut down.
-	///
-	/// Note that even though certain executors are infallible right now, that might change in the
-	/// future, notably WASM is bound to change quite alot over time.
+	/// - Spawning is infallible on: _juliex_, _async-std_, _bindgen_..
+	/// - Spawning on _localpool_ can fail with [`futures::task::SpawnError`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html).
+	///   The only reason for this is that the executor was shut down. I haven't found a way to trigger this error.
 	//
 	Spawn,
 
-	/// When some code in your project (possibly a dependency) uses spawn_local because the future they spawn is
-	/// `!Send`, you must use the localpool for the thread in which this code is run. It's simply not possible
-	/// to spawn a `!Send` future on a threadpool.
+	/// When some code in your project (possibly a dependency) uses [`spawn_local`](crate::spawn_local) because
+	/// the future they spawn is `!Send`, you must use the localpool for the thread in which this code is run.
+	/// It's simply not possible to spawn a `!Send` future on a threadpool.
 	//
 	SpawnLocalOnThreadPool,
 
@@ -48,6 +46,11 @@ pub enum ErrorKind
 	/// used for this thread.
 	//
 	WrongExecutor,
+
+	/// You tried to call a spawn function on a thread that has no executor initialized. Please use
+	/// [`init`](crate::init) first.
+	//
+	NoExecutorInitialized,
 
 	/// Protect against adding other options being breaking changes.
 	//
@@ -68,6 +71,8 @@ impl fmt::Display for ErrorKind
 			Self::SpawnLocalOnThreadPool => fmt::Display::fmt( "Spawn: You can not spawn `!Send` futures on a thread pool. If your feature is `Send`, use `rt::spawn`, otherwise initialize this thread with a Local executor.", f ) ,
 
 			Self::WrongExecutor => fmt::Display::fmt( "You tried to use a functionality specific to a certain executor while another executor was being used for this thread.", f ) ,
+
+			Self::NoExecutorInitialized => fmt::Display::fmt( "You must initialize an executor on this thread before calls to spawn.", f ) ,
 
 			_ => unreachable!(),
 		}
@@ -94,7 +99,7 @@ impl Error
 	}
 
 
-	/// Allows matching on the error kind
+	/// Allows matching on the error kind.
 	//
 	pub fn kind( &self ) -> &ErrorKind
 	{

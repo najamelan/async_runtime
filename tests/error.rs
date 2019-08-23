@@ -7,11 +7,7 @@
 
 #[ cfg( feature = "localpool" ) ]
 //
-use futures::future::ready;
-
-#[ cfg(any( feature = "juliex", feature = "localpool" )) ]
-//
-use async_runtime:: { self as rt, ErrorKind };
+use async_runtime as rt;
 
 
 
@@ -28,7 +24,7 @@ fn shutdown()
 	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
 	rt::localpool::run().unwrap();
 
-	let result = rt::spawn( ready(()) );
+	let result = rt::spawn( async {} );
 
 	assert!( result.is_ok() );
 
@@ -36,31 +32,3 @@ fn shutdown()
 }
 
 
-
-// Trigger DoubleExecutorInit with 2 threadpool executors.
-//
-#[ cfg( feature = "localpool" ) ] #[test]
-//
-fn double_init_local()
-{
-	             rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
-	let result = rt::init( rt::Config::LocalPool );
-
-	assert_eq!( &ErrorKind::DoubleExecutorInit, result.unwrap_err().kind() );
-}
-
-
-
-
-// Trigger SpawnLocalOnThreadPool.
-//
-#[ cfg( feature = "juliex" ) ] #[test]
-//
-fn spawn_local_on_thread_pool()
-{
-	rt::init( rt::Config::Juliex ).expect( "no double executor init" );
-
-	let res = rt::spawn_local( async {} );
-
-	assert_eq!( &ErrorKind::SpawnLocalOnThreadPool, res.unwrap_err().kind() );
-}

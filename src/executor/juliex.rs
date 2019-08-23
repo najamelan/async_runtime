@@ -2,8 +2,9 @@ use crate :: { self as rt, import::*, Error, ErrorKind };
 
 
 
-/// An executor that uses [futures 0.3 LocalPool](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/executor/struct.LocalPool.html) or [juliex](https://docs.rs/juliex) threadpool under the hood.
-/// Normally you don't need to construct this yourself, just use the [`rt`](crate::rt) module methods to spawn futures.
+/// We currently only support a global juliex threadpool. In principle this is the only supported
+/// executor that allows full control. We could expose an interface that allows users to control
+/// the lifetime and scope of a juliex threadpool.
 //
 #[ derive( Debug, Default ) ]
 //
@@ -38,19 +39,7 @@ impl Juliex
 	}
 
 
-	/// Spawn a future to be run on the default executor. Note that this requires the
-	/// future to be `Send` in order to work for both the local pool and the threadpool.
-	/// When you need to spawn futures that are not `Send` on the local pool, please use
-	/// [`spawn_local`](Juliex::spawn_local).
-	///
-	/// ### Errors
-	///
-	/// - When using `Config::Juliex` (currently juliex), this method is infallible.
-	/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
-	/// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
-	/// You can call [crate::rt::run] and spawn again afterwards.
-	///
-	//
+
 	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), Error >
 	{
 		// We can unwrap, since the constructor guarantees that the pool is created, we are sure it exists.
@@ -61,36 +50,17 @@ impl Juliex
 	}
 
 
-	/// Spawn a `!Send` future to be run on the LocalPool (current thread). Note that the executor must
-	/// be created with a local pool configuration. This will err if you try to call this on an executor
-	/// set up with a threadpool.
-	///
-	/// Note that this will not complain if you call this with a `Send` future, but there is no reason to
-	/// do so, and it will put restrictions on users of your code, as they will no longer be able to run
-	/// your code on a thread that spawns on a threadpool.
-	///
-	/// ### Errors
-	///
-	/// - When using `Config::Juliex` (currently juliex), this method will return an error of kind [ErrorKind::SpawnLocalOnThreadPool](crate::ErrorKind::SpawnLocalOnThreadPool).
-	///   Since the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
-	/// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
-	/// error if the executor has been shut down. `spawn_local` will return an error of kind
-	///  [ErrorKind::Spawn](crate::ErrorKind::Spawn).
-	///
-	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
-	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
-	//
+
 	pub(crate) fn spawn_local( &self, _: impl Future< Output = () > + 'static  ) -> Result< (), Error >
 	{
 		Err( ErrorKind::SpawnLocalOnThreadPool.into() )
 	}
 
 
-	/// Spawn a future and recover the output.
-	//
+
 	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+		-> Result< Box< dyn Future< Output=T > + Send + 'static + Unpin >, Error >
 
 	{
 		let (fut, handle) = fut.remote_handle();
@@ -101,11 +71,9 @@ impl Juliex
 
 
 
-	/// Spawn a future and recover the output for `!Send` futures.
-	//
 	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, _: impl Future< Output=T > + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+		-> Result< Box< dyn Future< Output=T > + 'static + Unpin >, Error >
 
 	{
 		Err( ErrorKind::SpawnLocalOnThreadPool.into() )

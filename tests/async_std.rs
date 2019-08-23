@@ -2,17 +2,23 @@
 #![ cfg(     feature     = "async_std" ) ]
 
 
-
 // Tested:
 //
-// ✔ basic spawning using default config
-// ✔ basic spawning specifying the config
+// ✔ basic spawning
 // ✔ spawn a pinned boxed future
 // ✔ spawn several tasks
 // ✔ spawn from within another task
-// ✔ verify that it's actually running on a threadpool and not on a LocalPool
-
-
+// ✔ worker thread spawns on same threadpool
+// ✔ worker thread spawns on same threadpool from spawn_handle
+// ✔ it's actually running on a threadpool and not on a LocalPool
+// ✔ spawn_local returns the right error
+// ✔ spawn_handle returns the right value
+// ✔ spawn_handle_local returns an error
+// ✔ rt::async_std::spawn_handle should error if no executor initialized
+// ✔ rt::async_std::spawn_handle should error if the wrong executor is initialized
+// ✔ rt::async_std::spawn_handle should return the correct value
+// ✔ rt::async_std::spawn_handle nested spawn on the right executor
+//
 use
 {
 	async_runtime as rt,
@@ -46,32 +52,6 @@ fn basic_spawn()
 		assert_eq!( 2u8, rx.await.expect( "wait on channel" ) );
 
 	});
-}
-
-
-
-
-#[test]
-//
-fn spawn_config()
-{
-	let (tx, rx) = oneshot::channel();
-
-	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
-
-	let task = async move
-	{
-		tx.send( 3u8 ).expect( "send on channel" );
-	};
-
-	rt::spawn( task ).expect( "Spawn task" );
-
-	rt::block_on( async move
-	{
-		assert_eq!( 3u8, rx.await.expect( "wait on channel" ) );
-	});
-	dbg!( std::thread::current().id(), rt::current_rt() );
-
 }
 
 
@@ -148,6 +128,8 @@ fn within()
 
 		let task = async move
 		{
+			assert_eq!( rt::Config::AsyncStd, rt::current_rt().expect( "some executor" ) );
+
 			tx2.send( 5u8 + rx.await.expect( "channel" ) ).expect( "send on channel" );
 		};
 
@@ -163,39 +145,6 @@ fn within()
 	})
 }
 
-
-
-#[test]
-//
-fn async_std_spawn_direct()
-{
-	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
-
-	let (tx , rx ) = oneshot::channel();
-	let (tx2, rx2) = oneshot::channel();
-
-
-	let task2 = async move
-	{
-		tx.send( 4u8 ).expect( "send on channel" );
-
-
-		let task = async move
-		{
-			tx2.send( 6u8 + rx.await.expect( "channel" ) ).expect( "send on channel" );
-		};
-
-
-		rt::async_std::spawn( task  );
-	};
-
-	rt::async_std::spawn( task2 );
-
-	rt::block_on( async move
-	{
-		assert_eq!( 10, rx2.await.expect( "wait on channel" ) );
-	})
-}
 
 
 #[test]
@@ -220,4 +169,148 @@ fn not_running_local()
 }
 
 
+
+// Trigger SpawnLocalOnThreadPool.
+//
+#[test]
+//
+fn spawn_local_on_thread_pool()
+{
+	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+
+	let res = rt::spawn_local( async {} );
+
+	assert_eq!( &rt::ErrorKind::SpawnLocalOnThreadPool, res.unwrap_err().kind() );
+}
+
+
+
+// Spawn_handle, return string.
+//
+#[test]
+//
+fn spawn_handle()
+{
+	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+
+	let handle = rt::spawn_handle( async { "hello".to_string() } ).expect( "spawn_handle" );
+
+	rt::block_on( async { assert_eq!( "hello", &handle.await ); } );
+}
+
+
+
+// Verify that nested calls to spawn spawn on the right executor
+//
+#[test]
+//
+fn spawn_handle_spawn_on_self()
+{
+	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+
+	let handle = rt::spawn_handle( async
+	{
+		rt::spawn( async
+		{
+			assert_eq!( rt::Config::AsyncStd, rt::current_rt().expect( "some executor" ) );
+
+		}).expect( "spawn" );
+
+		"hello".to_string()
+
+	}).expect( "spawn_handle" );
+
+	rt::block_on( async { assert_eq!( "hello", &handle.await ); } );
+}
+
+
+
+// Verify that we can spawn !Send futures.
+//
+#[test]
+//
+fn spawn_handle_local()
+{
+	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+
+	let handle = rt::spawn_handle_local( async {});
+
+	if let Err(error) = handle
+	{
+		assert_eq!( &rt::ErrorKind::SpawnLocalOnThreadPool, error.kind() );
+	}
+
+	else
+	{
+		panic!( "spawn_handle_local should return an error on threadpools" );
+	}
+}
+
+
+
+// rt::async_std::spawn_handle should error if no executor initialized
+//
+#[test]
+//
+fn spawn_handle_raw_without_init()
+{
+	let result = rt::async_std::spawn_handle( async {} );
+
+	assert_eq!( &rt::ErrorKind::NoExecutorInitialized, result.unwrap_err().kind() );
+}
+
+
+
+// rt::async_std::spawn_handle should error if the wrong executor is initialized
+//
+#[ cfg( feature = "localpool" ) ] #[test]
+//
+fn spawn_handle_raw_wrong_init()
+{
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+
+	let result = rt::async_std::spawn_handle( async {} );
+
+	assert_eq!( &rt::ErrorKind::WrongExecutor, result.unwrap_err().kind() );
+}
+
+
+
+// rt::async_std::spawn_handle should return the correct value
+//
+#[test]
+//
+fn spawn_handle_raw()
+{
+	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+
+	let handle = rt::async_std::spawn_handle( async { "hello".to_string() } ).expect( "spawn_handle" );
+
+	rt::block_on( async { assert_eq!( "hello", &handle.await ); } );
+}
+
+
+
+// Verify that nested calls in spawn_handle_raw spawn on the right executor
+//
+#[test]
+//
+fn spawn_handle_raw_spawn_on_self()
+{
+	rt::init( rt::Config::AsyncStd ).expect( "no double executor init" );
+
+	let handle = rt::async_std::spawn_handle( async
+	{
+		rt::spawn( async
+		{
+			assert_eq!( rt::Config::AsyncStd, rt::current_rt().expect( "some executor" ) );
+
+		}).expect( "spawn" );
+
+		"hello".to_string()
+
+	}).expect( "spawn_handle" );
+
+	rt::block_on( async { assert_eq!( "hello", &handle.await ); } );
+}
 

@@ -6,8 +6,8 @@ use
 
 
 
-#[ cfg( feature = "async_std" ) ] pub mod async_std ;
 #[ cfg( feature = "localpool" ) ] pub mod localpool ;
+#[ cfg( feature = "async_std" ) ] pub mod async_std ;
 #[ cfg( feature = "bindgen"   ) ]     mod bindgen   ;
 #[ cfg( feature = "juliex"    ) ]     mod juliex    ;
 
@@ -125,7 +125,7 @@ impl Executor
 	//
 	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+		-> Result< Box< dyn Future< Output=T > + Unpin + Send + 'static >, Error >
 
 	{
 		match self
@@ -149,7 +149,7 @@ impl Executor
 	//
 	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
 
-		-> Result< Box< dyn Future< Output=T > + Unpin >, Error >
+		-> Result< Box< dyn Future< Output=T > + 'static + Unpin >, Error >
 
 	{
 		match self

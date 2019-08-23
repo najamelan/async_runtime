@@ -31,7 +31,7 @@ fn basic_spawn()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
 
 
 	let task = async move
@@ -59,7 +59,7 @@ fn spawn_not_send()
 	let num2    = number.clone();
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
 
 
 	let task = async move
@@ -87,7 +87,7 @@ fn spawn_boxed()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
 
 
 	let task = async move
@@ -114,7 +114,7 @@ fn spawn_boxed_local()
 {
 	let (tx, rx) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
 
 
 	let task = async move
@@ -142,7 +142,7 @@ fn several()
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
 
 
 	let task = async move
@@ -176,7 +176,7 @@ fn within()
 	let (tx , rx ) = oneshot::channel();
 	let (tx2, rx2) = oneshot::channel();
 
-	if rt::current_rt().is_none() { rt::init( rt::Config::Bindgen ).expect( "no double executor init" ); }
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
 
 
 	let task = async move
@@ -202,6 +202,47 @@ fn within()
 
 	}).expect( "Spawn assert" );
 }
+
+
+
+// Spawn_handle, return string.
+//
+#[wasm_bindgen_test]
+//
+fn spawn_handle()
+{
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
+
+	let handle = rt::spawn_handle( async { "hello".to_string() } ).expect( "spawn_handle" );
+
+	rt::spawn( async { assert_eq!( "hello", &handle.await ); } ).expect( "spawn" );
+}
+
+
+
+// Verify that we can spawn !Send futures.
+//
+#[wasm_bindgen_test]
+//
+fn spawn_handle_local()
+{
+	rt::init_allow_same( rt::Config::Bindgen ).expect( "no double executor init" );
+
+	let handle = rt::spawn_handle_local( async
+	{
+		let rc = Rc::new( "some string" );
+
+		async { 3+3 }.await;
+
+		let _rc2 = rc.clone();
+
+		"hello".to_string()
+
+	}).expect( "spawn_handle" );
+
+	rt::spawn_local( async { assert_eq!( "hello", &handle.await ); } ).expect( "spawn" );
+}
+
 
 
 /*

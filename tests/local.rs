@@ -4,21 +4,22 @@
 
 // Tested:
 //
-// - ✔ basic spawning
-// - ✔ spawn !Send task (RefCell is !Send)
-// - ✔ spawn a pinned boxed future
-// - ✔ spawn a pinned boxed_local future
-// - ✔ spawn several tasks
-// - ✔ spawn from within another task
-// - ✔ localpools on several threads
-
-
+// ✔ basic spawning
+// ✔ spawn !Send task (RefCell is !Send)
+// ✔ spawn a pinned boxed future
+// ✔ spawn a pinned boxed_local future
+// ✔ spawn several tasks
+// ✔ spawn from within another task
+// ✔ localpools on several threads
+// ✔ spawn_handle returns the right value
+// ✔ spawn_handle_local returns the right value and can spawn !Send futures
+//
 use
 {
 	async_runtime as rt,
 
-	std           :: { rc::Rc, cell::RefCell, sync::{ Arc, Mutex }, thread } ,
-	futures       :: { future::FutureExt, channel::oneshot                 } ,
+	std     :: { rc::Rc, cell::RefCell, sync::{ Arc, Mutex }, thread } ,
+	futures :: { future::FutureExt, channel::oneshot                 } ,
 };
 
 
@@ -208,5 +209,49 @@ fn threads()
 	rt::localpool::run().unwrap();
 
 	assert_eq!( *number.borrow(), 10 );
+}
+
+
+
+// Spawn_handle, return string.
+//
+#[test]
+//
+fn spawn_handle()
+{
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+
+	let handle = rt::spawn_handle( async { "hello".to_string() } ).expect( "spawn_handle" );
+
+	rt::localpool::run().expect( "run localpool" );
+
+	rt::block_on( async { assert_eq!( "hello", &handle.await ); } );
+}
+
+
+
+// Verify that we can spawn !Send futures.
+//
+#[test]
+//
+fn spawn_handle_local()
+{
+	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
+
+	let handle = rt::spawn_handle_local( async
+	{
+		let rc = Rc::new( "some string" );
+
+		async { 3+3 }.await;
+
+		let _rc2 = rc.clone();
+
+		"hello".to_string()
+
+	}).expect( "spawn_handle" );
+
+	rt::localpool::run().expect( "run localpool" );
+
+	rt::block_on( async { assert_eq!( "hello", &handle.await ); } );
 }
 

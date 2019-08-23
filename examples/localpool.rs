@@ -21,7 +21,7 @@ use
 //
 async fn main()
 {
-	// Rc and RefCell are not Send
+	// Rc and RefCell are !Send
 	//
 	let number  = Rc::new( RefCell::new( 0 ) );
 	let num2    = number.clone();

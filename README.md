@@ -10,9 +10,9 @@
 
 The purpose of `async_runtime` is to make it convenient to spawn and run futures.
 It allows library authors to call [`rt::spawn( future );`](spawn) rather than having to take a `T: Executor`,
-yet let client code decide what kind of executor is used. Currently the choice is between
-futures 0.3 `LocalPool` and the [juliex](https://github.com/withoutboats/juliex) threadpool.
-Other implementations might be added later.
+yet let client code decide what kind of executor is used. It avoids pulling in the entire network stack/reactor of
+several runtime crates like runtime, tokio, async-std just because you want to use a few libraries that provide
+an async interface and they all depend on their favorite runtime. `async_runtime` tries to keep it fast and light.
 
 Some key features:
 
@@ -20,10 +20,8 @@ Some key features:
    - tries to do one thing and do it good (does not pull network/timer dependencies)
    - support a variety of executors, including single threaded ones that allow spawning `!Send` futures.
    - lightweight with very few dependencies
-   - library authors can spawn, application authors can decide which executor is used on each thread
-   - doesn't load network dependencies
-
-When not on WASM, the default executor (when you don't choose one explicitly) is the LocalPool from the futures library. On WASM, the default executor is also a Bindgen, based on wasm-bindgen-futures.
+   - library authors can spawn, application authors can decide which executor is used on each thread.
+   - wasm support (this means that a library which compiles on wasm does not need any specific code, just use `rt::spawn` just the same)
 
 
 ## Table of Contents
@@ -33,6 +31,13 @@ When not on WASM, the default executor (when you don't choose one explicitly) is
   - [Features](#features)
   - [Dependencies](#dependencies)
 - [Usage](#usage)
+  - [Available executors](#available-executors)
+     - [LocalPool](#localpool)
+     - [Bindgen](#bindgen)
+     - [Juliex](#juliex)
+     - [AsyncStd](#asyncstd)
+     - [block_on](#block_on)
+  - [Examples](#examples)
   - [WASM](#wasm)
 - [API](#api)
 - [Contributing](#contributing)
@@ -75,9 +80,7 @@ These features enable extra functionality:
    - `localpool`: the localpool.
    - `bindgen`: the wasm-bindgen backed executor.
 
-Various aspects of the library are only available if certain features are enabled. This will be noted in the documentation.
-
-**Note** for library authors. You should not enable any features on `async_runtime`. The per thread executor is chosen by the application developer (exception: your library is creating threads).
+**Note** for library authors. You should not enable any features on `async_runtime`. The per thread executor is chosen by the application developer (exception: your library is creating the threads).
 
 
 ### Dependencies
@@ -88,20 +91,23 @@ the `macros` feature.
 
 ## Usage
 
+The basic concept is this. When you create a thread, you call [`init`] to decide which executor will be used
+for calls to `spawn` and friends in the thread. `async_runtime` makes sure that worker threads in threadpools
+are set up to continue spawning on the same threadpool. All top level functions in this library will work correctly
+regardless of the chosen executor. One exception are functions ending in `_local`. Those are not available on threadpools
+and will return an error.
+
+If [`spawn`]* gets called on a thread for which no executor has been chosen, an error is returned.
+
 ### Available executors
 
-__Warning:__ Some executors have specific modules (like `rt::async_std`) which make available functionality
+__Warning:__ Some executors have specific modules (like `rt::localpool`) which make available functionality
 specific to this particular executor. These exist for 2 reasons:
-- The API of the different supported executors varies. It is not always possible to provide a unified API
-  on top of them. To avoid losing functionality, we make it available in these modules.
-- Sometimes providing a unified API imposes overhead like boxing a return type (`rt::spawn_handle`)
-  or running initialization code for worker threads on threadpools which don't support setting up the
-  threadpool with initialization code when it is created. (`rt::spawn` on async-std).
-
-You should be careful using functionality from these modules. They work if you know what executor you
-are using. You shouldn't use these in code that has to abstract out over executors, or that will call into
-such code. Eg. if you are a library author or your futures will call into library code that uses async_runtime,
-you generally shouldn't use these.
+1. The API of the different supported executors varies. It is not always possible to provide a unified API
+   on top of them. To avoid losing functionality, we make it available in these modules.
+2. Sometimes providing a unified API imposes overhead like boxing a return type (`rt::spawn_handle`).
+   Since async-std provides a `JoinHandle`, there is [`async_std::spawn_handle`] to recover that instead
+   of a boxed variant. On other executors you can use `remote_handle` from the futures library to avoid boxing.
 
 #### LocalPool
 
@@ -131,7 +137,7 @@ access one of the other three functions, please file an issue.
 
 #### Bindgen
 
-- feature: `bindgen`, enabled by default on WASM targets
+- feature: `Bindgen`, enabled by default on WASM targets
 - attribute: `#[ rt::bindgen ]`
 - config: `rt::Config::Bindgen`
 - targets: only on WASM
@@ -151,11 +157,17 @@ futures will start to be polled immediately and no `run` method must be called t
 - type: thread pool
 - provider: juliex
 
-A threadpool. Worker threads created will automatically have juliex set as the default executor. This
-cannot be changed. Futures will be polled immediately. If you have a top level future that you block one,
-or that is being waited on by the macro attribute, as soon as that future is done, the progam will end,
-even if there are still tasks in the thread pool that haven't finished yet. You must add your own synchronization
-like channels or [`join_all`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/fn.join_all.html) from the futures library to wait on your tasks.
+A threadpool. Worker threads created will automatically have juliex set as the thread executor. This
+cannot be changed through the API `async_runtime` exposes right now. Futures will be polled immediately.
+
+If you have a top level future that you block on, or that is being waited on by the macro attribute,
+as soon as that future is done, the progam will end, even if there are still tasks in the thread pool
+that haven't finished yet.
+
+`async_runtime` provides the [`spawn_handle`] method to wait on your futures, but
+that requires boxing the returned handle. Otherwise you can add your own synchronization like channels or
+[`join_all`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/fn.join_all.html)
+from the futures library to wait on your tasks. The futures library also provides `remote_handle`.
 
 
 #### AsyncStd
@@ -173,17 +185,15 @@ that `rt::spawn` will have some overhead to make sure the worker thread is initi
 __Warning__: async-std does not have optional dependencies, so you will be pulling in all their dependencies,
 including network libraries, mio, ... which will cause bloat if you don't use them.
 
-Futures will be polled immediately. If you have a top level future that you block one, or that is being waited on
+Futures will be polled immediately. If you have a top level future that you block on, or that is being waited on
 by the macro attribute, as soon as that future is done, the progam will end, even if there are still tasks
 in the thread pool that haven't finished yet.
 
-You can add your own synchronization like channels or [`join_all`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/fn.join_all.html) from the futures library to wait on your tasks.
+`async_runtime` provides the [`spawn_handle`] method to wait on your futures, but
+that requires boxing the returned handle. Otherwise you can add your own synchronization like channels or
+[`join_all`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/fn.join_all.html)
+from the futures library to wait on your tasks. The futures library also provides `remote_handle`.
 
-There is an `rt::async_std` module with specific functionality from this executor:
-
-- [`spawn`](async_std::spawn): Spawn directly on this executor (avoids the overhead from rt::spawn).
-- [`spawn_handle`](async_std::spawn_handle): Get a `async-std::task::TaskHandle` to await this future.
-  This avoids the boxing that `rt::spawn_handle` has to do.
 
 #### block_on
 
@@ -277,31 +287,10 @@ async fn main()
 
 ### Wasm
 
-Note that it's best to turn of default-features in your Cargo.toml to avoid loading `juliex` which isn't used on wasm.
-```toml
-[dependencies]
+To use the crate in wasm, please have a look at the example in the examples directory of the [repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 
-   async_runtime = { version = "^0.1", default-features = false, package = "naja_async_runtime" }
-```
+The only executor available on WASM is currently _bindgen_.
 
-To use the crate in wasm, please have a look at the example in the examples directory of the [repository](https://github.com/najamelan/async_runtime).
-
-For the documentation, docs.rs does not make the wasm specific parts available, but their use is identical to the `rt` module for other targets. The only difference is that even though it's on a local pool (wasm does not have threads), you don't need to call run because the browser automatically runs the promises. This might change in the future.
-
-**Note:** Wasm will panic on `thread_park`, which is used by `futures::executor::block_on`, so `rt::block_on` is not available on wasm.
-
-For running the integration tests:
-```bash
-cargo install wasm-pack wasm-bindgen-cli
-```
-Now you can do either:
-```bash
-wasm-pack test --firefox --headless
-```
-or:
-```bash
-cargo test --target wasm32-unknown-unknown
-```
 
 ## API
 
@@ -313,6 +302,8 @@ Api documentation can be found on [docs.rs](https://docs.rs/async_runtime).
 This repository accepts contributions. Ideas, questions, feature requests and bug reports can be filed through github issues.
 
 Pull Requests are welcome on github. By commiting pull requests, you accept that your code might be modified and reformatted to fit the project coding style or to improve the implementation. Please discuss what you want to see modified before filing a pull request if you don't want to be doing work that might be rejected.
+
+Please file pull requests against the dev branch.
 
 
 ### Code of conduct
