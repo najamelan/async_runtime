@@ -8,6 +8,8 @@ set -e
 #
 set -x
 
+export RUSTFLAGS="-D warnings"
+
 cargo test
 cargo test --features localpool
 cargo test --features juliex

@@ -79,7 +79,7 @@ features:
 dependencies:
 
   futures-preview     : { version: ^0.3.0-alpha, features: [std], default-features: false }
-  once_cell           : { version: ^0.1, default-features: false }
+  once_cell           : { version: ^0.2, default-features: false }
   juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex }
   naja_runtime_macros : { path: macros, optional: true }
   async_std_crate     : { version: ^0.99, optional: true, package: async-std }

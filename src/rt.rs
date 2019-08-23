@@ -1,27 +1,23 @@
-//! This is a convenience module for setting a default runtime and allowing code throughout to use [rt::spawn].
-//! It means you don't have to pass an executor around everywhere.
+//! This is a convenience module for setting defining which executor gets used on each thread and allowing code
+//! throughout to use [rt::spawn]. It means you don't have to pass an executor around everywhere.
+//!
+//! The module provides functionality that is common to all supported executors. Other executor specific functionality
+//! is provided in submodules.
 //!
 //! For examples, please look in the
 //! [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 //!
-
 mod config   ;
 mod executor ;
 
 pub use config::*;
 
 
-#[ cfg( feature = "juliex"    ) ] mod juliex               ;
-#[ cfg( feature = "juliex"    ) ] use juliex::Juliex       ;
+#[ cfg( feature = "localpool" ) ] pub mod localpool ;
+#[ cfg( feature = "async_std" ) ] pub mod async_std ;
+#[ cfg( feature = "juliex"    ) ]     mod juliex    ;
+#[ cfg( feature = "bindgen"   ) ]     mod bindgen   ;
 
-#[ cfg( feature = "async_std" ) ] pub mod async_std        ;
-#[ cfg( feature = "async_std" ) ] use async_std::AsyncStd  ;
-
-#[ cfg( feature = "localpool" ) ] mod localpool            ;
-#[ cfg( feature = "localpool" ) ] use localpool::LocalPool ;
-
-#[ cfg( feature = "bindgen"   ) ] mod bindgen              ;
-#[ cfg( feature = "bindgen"   ) ] use bindgen::Bindgen     ;
 
 #[ cfg(all( feature = "macros", feature = "juliex"    )) ] pub use naja_runtime_macros::juliex    ;
 #[ cfg(all( feature = "macros", feature = "async_std" )) ] pub use naja_runtime_macros::async_std ;
@@ -38,55 +34,48 @@ use
 
 std::thread_local!
 (
-	static EXEC: OnceCell<Executor> = OnceCell::INIT;
+	pub(crate) static EXEC: OnceCell<Executor> = OnceCell::new();
 );
 
 
 
-/// Set the executor to use by default. Run this before calls to spawn. If you are a library
-/// author, don't call this unless you create the thread, otherwise it's up to client code to
-/// decide which executor to use. Just call [spawn].
+/// Set the executor to use by on this thread. Run this before calls to [spawn]\(_*\).
 ///
-/// This is optional and if you don't set this, the default executor depends on whether the `juliex`
-/// feature is enabled for the crate. If it is, it is the default executor, otherwise it will be the
-/// local pool. If it's enabled and you still want the local pool, use this method.
+/// If you are a library author, don't call this unless you create the thread, otherwise it's up to client code to
+/// decide which executor to use. Just call [spawn].
 ///
 /// ### Errors
 ///
-/// This method will fail with [RtErrKind::DoubleExecutorInit](crate::RtErrKind::DoubleExecutorInit) if you
-/// call it twice on the same thread or if you have called [spawn] and thus the executor has been initialized
-/// by default before you call init.
-///
+/// This method will fail with [RtErrKind::DoubleExecutorInit] if you call it twice on the same thread. There is
+/// [init_allow_same] which will not return an error if you try to init with the same executor twice.
 ///
 /// ### Example
 #[cfg_attr(feature = "localpool", doc = r##"
 ```rust
 use async_runtime::*;
 
-rt::init( rt::Config::LocalPool ).expect( "Set default executor" );
+rt::init( rt::Config::LocalPool ).expect( "Set thread executor" );
 
-// ...spawn some tasks...
-//
 rt::spawn( async {} ).expect( "spawn future" );
 
-// Important, otherwise the local executor does not poll. For the threadpool this is not necessary,
-// as futures will be polled immediately after spawning them.
-//
-rt::run();
+rt::localpool::run();
 ```
 "##)]
 //
 pub fn init( config: Config ) -> Result< (), RtErr >
 {
-	EXEC.with( move |exec| -> Result< (), RtErr >
+	EXEC.with( |exec| -> Result< (), RtErr >
 	{
 		exec.set( Executor::new( config ) ).map_err( |_| RtErrKind::DoubleExecutorInit.into() )
 	})
 }
 
-/// Set the executor to use by default. The difference with init is that this will not return
-/// an DoubleExecutorInit error if you init with the same executor twice. It will still err
+/// Set the executor to use by default. The difference with [init] is that this will not return
+/// a [RtErrKind::DoubleExecutorInit] error if you init with the same executor twice. It will still err
 /// if you try to set 2 different executors for this thread.
+///
+/// This can sometimes be convenient for example if you would like to make two async fn sync in the
+/// same thread with macro attributes (they use this method). You should rarely need this.
 //
 pub fn init_allow_same( config: Config ) -> Result< (), RtErr >
 {
@@ -95,7 +84,6 @@ pub fn init_allow_same( config: Config ) -> Result< (), RtErr >
 	{
 		return Ok(())
 	}}
-
 
 	init( config )
 }
@@ -109,7 +97,7 @@ pub fn init_allow_same( config: Config ) -> Result< (), RtErr >
 /// - When using `Config::Juliex` (currently juliex), this method is infallible.
 /// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
 /// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
-/// You can call [crate::rt::run] and spawn again afterwards.
+/// You can call [localpool::run] and spawn again afterwards.
 ///
 /// ### Example
 #[ cfg_attr( feature = "localpool", doc = r##"
@@ -147,7 +135,7 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Rt
 /// the signature doesn't require [Send] on the future, it can never be sent on a threadpool.
 /// - When using `Config::LocalPool` (currently futures 0.3 LocalPool), this method can return a spawn
 /// error if the executor has been shut down. See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error.
-/// You can call [rt::run](crate::rt::run) and spawn again afterwards.
+/// You can call [localpool::run] and spawn again afterwards.
 //
 pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), RtErr >
 {
@@ -188,18 +176,6 @@ pub fn spawn_handle_local<T: 'static + Send>( fut: impl Future< Output=T > + 'st
 }
 
 
-
-/// Run all spawned futures to completion. This is a no-op for the threadpool. However you must
-/// run this after spawning on the local pool or futures won't be polled.
-/// Do not call it from within a spawned task, or your program will hang or panic.
-//
-pub fn run()
-{
-	EXEC.with( move |exec|
-	{
-		exec.get().unwrap().run();
-	});
-}
 
 
 /// Get the configuration for the current default executor.

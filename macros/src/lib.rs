@@ -59,7 +59,7 @@ pub fn localpool( _args: TokenStream, item: TokenStream ) -> TokenStream
 			let body = async move #body ;
 
 			let handle = async_runtime::rt::spawn_handle_local( body ).expect( "spawn from proc macro attribute" );
-			async_runtime::rt::run();
+			async_runtime::rt::localpool::run().expect( "LocalPool executor" );
 			async_runtime::rt::block_on( handle )
 		}
 	};

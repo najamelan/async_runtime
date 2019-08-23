@@ -9,26 +9,21 @@ use crate :: { import::*, rt, RtErr, RtErrKind };
 //
 pub(crate) struct Juliex {}
 
-static JULIEX_POOL: SyncOnceCell<juliex_crate::ThreadPool> = SyncOnceCell::INIT;
+static JULIEX_POOL: SyncOnceCell<juliex_crate::ThreadPool> = SyncOnceCell::new();
 
 
 impl Juliex
 {
 	/// Create a new Juliex from a [Config](rt::Config) configuration.
 	//
-	pub fn new() -> Self
+	pub(crate) fn new() -> Self
 	{
 		// We create one global juliex executor. Then we set the worker threads of this executor
 		// to spawn on Juliex executors again. This means that while constructing the global juliex::ThreadPool,
 		// we will re-enter this constructor for each worker thread.
 		//
-		// OnceCell `set` should not be called from a re-entrance, so we cannot use OnceCell to detect if
-		// a threadpool already exists, until we really returned from the call to `set`.
-		// For that we have to use an atomic lock to make sure we only try to create the ThreadPool once.
-		// As far as I can tell from LLVM documentation, a load with `Ordering::Acquire` can be moved before
-		// a store with `Ordering::Release`. However here when we load from a worker thread, to verify
-		// whether we are already initializing, we really need to be sure that that happens after the store,
-		// so I think we need `Ordering::SeqCst`.
+		// OnceCell should be fine being called from several threads. When get_or_init returns an error,
+		// it means that we are already
 		//
 		JULIEX_POOL.get_or_init( ||
 
@@ -56,7 +51,7 @@ impl Juliex
 	/// You can call [crate::rt::run] and spawn again afterwards.
 	///
 	//
-	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{
 		// We can unwrap, since the constructor guarantees that the pool is created, we are sure it exists.
 		//
@@ -85,7 +80,7 @@ impl Juliex
 	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
 	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
 	//
-	pub fn spawn_local( &self, _: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
+	pub(crate) fn spawn_local( &self, _: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
 	{
 		Err( RtErrKind::SpawnLocalOnThreadPool.into() )
 	}
@@ -93,7 +88,7 @@ impl Juliex
 
 	/// Spawn a future and recover the output.
 	//
-	pub fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
+	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
 		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
 
@@ -108,7 +103,7 @@ impl Juliex
 
 	/// Spawn a future and recover the output for `!Send` futures.
 	//
-	pub fn spawn_handle_local<T: 'static + Send>( &self, _: impl Future< Output=T > + 'static )
+	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, _: impl Future< Output=T > + 'static )
 
 		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
 

@@ -43,6 +43,15 @@ pub enum RtErrKind
 	/// to spawn a `!Send` future on a threadpool.
 	//
 	SpawnLocalOnThreadPool,
+
+	/// You tried to use a functionality specific to a certain executor while another executor was being
+	/// used for this thread.
+	//
+	WrongExecutor,
+
+	/// Protect against adding other options being breaking changes.
+	//
+	__Nonexhaustive,
 }
 
 
@@ -52,9 +61,15 @@ impl fmt::Display for RtErrKind
 	{
 		match self
 		{
-			Self::DoubleExecutorInit     => fmt::Display::fmt( "DoubleExecutorInit: Cannot initialize global executor twice.", f ) ,
-			Self::Spawn                  => fmt::Display::fmt( "Spawn: Failed to spawn a future."                            , f ) ,
+			Self::DoubleExecutorInit => fmt::Display::fmt( "DoubleExecutorInit: Cannot initialize global executor twice.", f ) ,
+
+			Self::Spawn => fmt::Display::fmt( "Spawn: Failed to spawn a future.", f ) ,
+
 			Self::SpawnLocalOnThreadPool => fmt::Display::fmt( "Spawn: You can not spawn `!Send` futures on a thread pool. If your feature is `Send`, use `rt::spawn`, otherwise initialize this thread with a Local executor.", f ) ,
+
+			Self::WrongExecutor => fmt::Display::fmt( "You tried to use a functionality specific to a certain executor while another executor was being used for this thread.", f ) ,
+
+			_ => unreachable!(),
 		}
 	}
 }

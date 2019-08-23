@@ -39,7 +39,7 @@ fn basic_spawn()
 	};
 
 	rt::spawn_local( task ).expect( "Spawn task" );
-	rt::run();
+	rt::localpool::run().unwrap();
 
 	assert_eq!( *number.borrow(), 2 );
 }
@@ -69,7 +69,7 @@ fn spawn_boxedlocal()
 	}).expect( "spawn assert" );
 
 
-	rt::run();
+	rt::localpool::run().unwrap();
 }
 
 
@@ -94,7 +94,7 @@ fn spawn_boxed()
 	// yet it will still be spawned on the LocalPool and not on a threadpool.
 	//
 	rt::spawn( task ).expect( "Spawn task" );
-	rt::run();
+	rt::localpool::run().unwrap();
 
 	assert_eq!( *number.lock().expect( "lock mutex" ), 5 );
 }
@@ -129,7 +129,7 @@ fn several()
 	//
 	rt::spawn( task2 ).expect( "Spawn task2" );
 
-	rt::run();
+	rt::localpool::run().unwrap();
 
 	assert_eq!( *number.borrow(), 6 );
 }
@@ -161,7 +161,7 @@ fn within()
 	};
 
 	rt::spawn_local( task2 ).expect( "Spawn task2" );
-	rt::run();
+	rt::localpool::run().unwrap();
 
 	assert_eq!( *number.borrow(), 8 );
 }
@@ -198,13 +198,13 @@ fn threads()
 		// yet it will still be spawned on the LocalPool and not on a threadpool.
 		//
 		rt::spawn( task2 ).expect( "Spawn thread 2 program" );
-		rt::run();
+		rt::localpool::run().unwrap();
 
 	}).join().expect( "join thread" );
 
 
 	rt::spawn_local( task  ).expect( "Spawn task"  );
-	rt::run();
+	rt::localpool::run().unwrap();
 
 	assert_eq!( *number.borrow(), 10 );
 }

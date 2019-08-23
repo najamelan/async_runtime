@@ -28,7 +28,7 @@ path = "macros"
 
 [dependencies.once_cell]
 default-features = false
-version = "^0.1"
+version = "^0.2"
 
 [dependencies.wasm-bindgen-futures]
 features = ["futures_0_3"]

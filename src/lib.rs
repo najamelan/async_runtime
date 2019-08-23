@@ -17,6 +17,13 @@
 	missing_docs                  ,
 	nonstandard_style             ,
 	rust_2018_idioms              ,
+	trivial_casts                 ,
+	trivial_numeric_casts         ,
+	unused_extern_crates          ,
+	unused_qualifications         ,
+	single_use_lifetimes          ,
+	unreachable_pub               ,
+	variant_size_differences      ,
 )]
 
 

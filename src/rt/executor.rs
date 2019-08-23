@@ -5,10 +5,10 @@ use
 };
 
 
-#[ cfg( feature = "juliex"    ) ] use super::Juliex    ;
-#[ cfg( feature = "async_std" ) ] use super::AsyncStd  ;
-#[ cfg( feature = "localpool" ) ] use super::LocalPool ;
-#[ cfg( feature = "bindgen"   ) ] use super::Bindgen   ;
+#[ cfg( feature = "juliex"    ) ] use super::juliex    :: Juliex    ;
+#[ cfg( feature = "async_std" ) ] use super::async_std :: AsyncStd  ;
+#[ cfg( feature = "localpool" ) ] use super::localpool :: LocalPool ;
+#[ cfg( feature = "bindgen"   ) ] use super::bindgen   :: Bindgen   ;
 
 
 /// The different executors we support.
@@ -72,25 +72,11 @@ impl Executor
 	}
 
 
-	pub fn run( &self )
-	{
-		match self
-		{
-			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.run(),
-			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (_) => {}
-			#[ cfg( feature = "async_std" ) ] Self::AsyncStd  (_) => {}
-			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (_) => {}
-
-			_ => unreachable!(),
-		}
-	}
-
-
 	// For the case where we compile without an executor enabled, the fut variable will be unused.
 	//
 	#[ allow( unused_variables ) ]
 	//
-	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{
 		match self
 		{
@@ -108,7 +94,7 @@ impl Executor
 	//
 	#[ allow( unused_variables ) ]
 	//
-	pub fn spawn_local( &self, fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
+	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static ) -> Result< (), RtErr >
 	{
 		match self
 		{
@@ -130,7 +116,7 @@ impl Executor
 	//
 	#[ allow( unused_variables ) ]
 	//
-	pub fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
+	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
 		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
 
@@ -154,7 +140,7 @@ impl Executor
 	//
 	#[ allow( unused_variables ) ]
 	//
-	pub fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
+	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
 
 		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
 

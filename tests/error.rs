@@ -29,13 +29,13 @@ use async_runtime::*;
 fn shutdown()
 {
 	rt::init( rt::Config::LocalPool ).expect( "no double executor init" );
-	rt::run();
+	rt::localpool::run().unwrap();
 
 	let result = rt::spawn( ready(()) );
 
 	assert!( result.is_ok() );
 
-	rt::run();
+	rt::localpool::run().unwrap();
 }
 
 

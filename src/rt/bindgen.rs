@@ -14,7 +14,7 @@ impl Bindgen
 {
 	/// Create a new Bindgen from an [Config](crate::Config) configuration.
 	//
-	pub fn new() -> Self
+	pub(crate) fn new() -> Self
 	{
 		Self {}
 	}
@@ -33,7 +33,7 @@ impl Bindgen
 	/// You can call [crate::rt::run] and spawn again afterwards.
 	///
 	//
-	pub fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
+	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), RtErr >
 	{
 		self.spawn_local( fut )
 	}
@@ -58,7 +58,7 @@ impl Bindgen
 	/// See the [docs for the futures library](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html). I haven't really found a way to trigger this error,
 	/// since you can call [rt::run](crate::rt::run) and spawn again afterwards.
 	//
-	pub fn spawn_local( &self, fut: impl std::future::Future< Output = () > + 'static  ) -> Result< (), RtErr >
+	pub(crate) fn spawn_local( &self, fut: impl Future< Output = () > + 'static  ) -> Result< (), RtErr >
 	{
 		spawn_local( fut );
 
@@ -68,7 +68,7 @@ impl Bindgen
 
 	/// Spawn a future and recover the output.
 	//
-	pub fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
+	pub(crate) fn spawn_handle<T: 'static + Send>( &self, fut: impl Future< Output=T > + Send + 'static )
 
 		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
 
@@ -83,7 +83,7 @@ impl Bindgen
 
 	/// Spawn a future and recover the output for `!Send` futures.
 	//
-	pub fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
+	pub(crate) fn spawn_handle_local<T: 'static + Send>( &self, fut: impl Future< Output=T > + 'static )
 
 		-> Result< Box< dyn Future< Output=T > + Unpin >, RtErr >
 	{
