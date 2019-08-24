@@ -106,7 +106,7 @@ fn double_init_inverse()
 
 
 
-// Trigger DoubleExecutorInit with 2 different executors.
+// spawn should error if no executor initialized
 //
 #[test]
 //
@@ -119,7 +119,7 @@ fn spawn_without_init()
 
 
 
-// Trigger DoubleExecutorInit with 2 different executors.
+// spawn_local should error if no executor initialized
 //
 #[test]
 //
@@ -132,7 +132,7 @@ fn spawn_local_without_init()
 
 
 
-// Trigger DoubleExecutorInit with 2 different executors.
+// spawn_handle should error if no executor initialized
 //
 #[test]
 //
@@ -153,7 +153,7 @@ fn spawn_handle_without_init()
 
 
 
-// Trigger DoubleExecutorInit with 2 different executors.
+// spawn_handle_local should error if no executor initialized
 //
 #[test]
 //
