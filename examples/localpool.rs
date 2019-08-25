@@ -12,8 +12,8 @@ use
 {
 	async_runtime as rt,
 
-	std           :: { rc::Rc, cell::RefCell } ,
-	futures       :: { future::FutureExt     } ,
+	std     :: { rc::Rc, cell::RefCell } ,
+	futures :: { future::FutureExt     } ,
 };
 
 

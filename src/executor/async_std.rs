@@ -99,7 +99,7 @@ pub fn spawn_handle<F, T>( fut: F ) -> Result< async_std_crate::task::JoinHandle
 	//
 	match rt::current_rt()
 	{
-		None => Err( ErrorKind::NoExecutorInitialized )?,
+		None => Err( ErrorKind::NoExecutorInitialized.into() ),
 
 		Some( rt::Config::AsyncStd ) =>
 		{
@@ -117,6 +117,6 @@ pub fn spawn_handle<F, T>( fut: F ) -> Result< async_std_crate::task::JoinHandle
 		}
 
 
-		Some(_) => Err( ErrorKind::WrongExecutor )?,
+		Some(_) => Err( ErrorKind::WrongExecutor.into() ),
 	}
 }

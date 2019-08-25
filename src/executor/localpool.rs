@@ -39,6 +39,31 @@ impl LocalPool
 	}
 
 
+	///
+	//
+	pub(crate) fn run_until<F: Future>( future: F ) -> <F as Future>::Output
+	{
+		self.pool.borrow_mut().run_until( future )
+	}
+
+
+	///
+	//
+	pub(crate) fn try_run_one() -> bool
+	{
+		self.pool.borrow_mut().try_run_one()
+	}
+
+
+	///
+	//
+	pub(crate) fn run_until_stalled()
+	{
+		self.pool.borrow_mut().run_until_stalled()
+	}
+
+
+
 
 	pub(crate) fn spawn( &self, fut: impl Future< Output = () > + 'static + Send ) -> Result< (), Error >
 	{
@@ -84,13 +109,62 @@ impl LocalPool
 //
 pub fn run() -> Result< (), Error >
 {
-	rt::EXEC.with( move |exec|
+	rt::EXEC.with( |some|
 	{
-		if let super::Executor::LocalPool( e ) = exec.get().unwrap()
+		match some.get()
 		{
-			Ok( e.run() )
+			Some(super::Executor::LocalPool(e)) => Ok ( e.run()                                 ),
+			None                                => Err( ErrorKind::NoExecutorInitialized.into() ),
+			_                                   => Err( ErrorKind::WrongExecutor.into()         ),
 		}
+	})
+}
 
-		else { Err( Error::from( ErrorKind::WrongExecutor ) ) }
+
+/// Runs all the tasks in the pool until the given future completes.
+//
+pub fn run_until<F: Future>( future: F ) -> <F as Future>::Output
+{
+	rt::EXEC.with( |some|
+	{
+		match some.get()
+		{
+			Some(super::Executor::LocalPool(e)) => Ok ( e.run_until( future )                   ),
+			None                                => Err( ErrorKind::NoExecutorInitialized.into() ),
+			_                                   => Err( ErrorKind::WrongExecutor.into()         ),
+		}
+	})
+}
+
+
+/// Runs all tasks and returns after completing one future or until no more progress can be made.
+/// Returns true if one future was completed, false otherwise.
+//
+pub fn try_run_one() -> bool
+{
+	rt::EXEC.with( |some|
+	{
+		match some.get()
+		{
+			Some(super::Executor::LocalPool(e)) => Ok ( e.try_run_one()                         ),
+			None                                => Err( ErrorKind::NoExecutorInitialized.into() ),
+			_                                   => Err( ErrorKind::WrongExecutor.into()         ),
+		}
+	})
+}
+
+
+/// Runs all tasks in the pool and returns if no more progress can be made on any task.
+//
+pub fn run_until_stalled()
+{
+	rt::EXEC.with( |some|
+	{
+		match some.get()
+		{
+			Some(super::Executor::LocalPool(e)) => Ok ( e.run_until_stalled()                   ),
+			None                                => Err( ErrorKind::NoExecutorInitialized.into() ),
+			_                                   => Err( ErrorKind::WrongExecutor.into()         ),
+		}
 	})
 }

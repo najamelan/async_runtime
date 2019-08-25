@@ -167,6 +167,8 @@ pub fn init_allow_same( config: Config ) -> Result< (), Error >
 /// application code you will know which executor you use, so you know if it's fallible, but library authors
 /// need to take into account that this might be fallible and consider how to recover from it.
 ///
+/// Note that _localpool_ and _bindgen_ will box the future.
+///
 /// [`spawn`] requires a `Send` bound on the future. See [`spawn_local`] if you have to spasn `!Send` futures.
 ///
 /// [`spawn`] requires a `()` Output on the future. If you need to wait for the future to finish and/or recover
@@ -215,6 +217,8 @@ pub fn spawn( fut: impl Future< Output=() > + 'static + Send ) -> Result< (), Er
 /// future is [Send], you can just use [spawn]. It will spawn on the executor the current thread is configured with
 /// either way..
 ///
+/// Note that _localpool_ and _bindgen_ will box the future.
+///
 /// __Warning__: If you are a library author and you use this, you oblige client code to configure the thread in which
 /// this runs with a single threaded executor.
 ///
@@ -243,7 +247,11 @@ pub fn spawn_local( fut: impl Future< Output=() > + 'static ) -> Result< (), Err
 /// Spawn a future and recover the output or just `.await` it to make sure it's finished.
 /// Since different executors return different types, we have to Box the returned future.
 ///
-/// To avoid boxing, use [`spawn`] with [`FutureExt::remote_handle`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/trait.FutureExt.html#method.remote_handle). Or use providers directly, eg. async-std always
+/// Note that if you drop the handle, your future will not be polled.
+///
+/// If on a threadpool and your future panics, the panic will be swallowed.
+///
+/// async-std always
 /// returns a `JoinHandle`. You could call async-std's spawn method directly, knowing that worker threads might
 /// not be set up to end further calls to [`spawn`] to the async-std executor. Only do this if the spawned future
 /// will not call [`spawn`] and friends.
@@ -294,6 +302,8 @@ pub fn spawn_handle<T: Send + 'static>( fut: impl Future< Output=T > + Send + 's
 /// except the future does not have to be `Send`. Note that `Future::Output` still has to be `Send`.
 /// We use [`FutureExt::remote_handle`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/future/trait.FutureExt.html#method.remote_handle) behind the scenes, and that requires the output to be Send,
 /// even though it shoulnd't have to be.
+///
+/// Note that if you drop the handle, your future will not be polled.
 ///
 /// ### Errors
 /// - If you call this without an initialized executor, [`ErrorKind::NoExecutorInitialized`] is returned.

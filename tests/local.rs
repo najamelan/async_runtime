@@ -13,6 +13,9 @@
 // ✔ localpools on several threads
 // ✔ spawn_handle returns the right value
 // ✔ spawn_handle_local returns the right value and can spawn !Send futures
+// ✔ rt::localpool::run should error if no executor initialized
+// ✔ rt::localpool::run should error if the wrong executor is initialized
+
 //
 use
 {
@@ -254,4 +257,39 @@ fn spawn_handle_local()
 
 	rt::block_on( async { assert_eq!( "hello", &handle.await ); } );
 }
+
+
+
+// rt::localpool::run should error if no executor initialized
+//
+#[test]
+//
+fn run_without_init()
+{
+	let result = rt::localpool::run();
+
+	assert_eq!( &rt::ErrorKind::NoExecutorInitialized, result.unwrap_err().kind() );
+}
+
+
+
+// This is how the spawn error can be triggered on Localpool
+//
+// #[test]
+// //
+// fn break_localpool()
+// {
+// 	use futures::executor::LocalPool;
+// 	use futures::task::SpawnExt;
+
+// 	let     pool  = LocalPool::new();
+// 	let mut spawn = pool.spawner();
+
+// 	drop(pool);
+
+// 	spawn.spawn( async {} ).expect( "boom" );
+// }
+
+
+
 
