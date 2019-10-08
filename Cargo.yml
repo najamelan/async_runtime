@@ -12,8 +12,9 @@ package:
   readme     : README.md
 
   metadata:
-    docs.rs:
-      all-features: true
+    docs:
+      rs:
+        all-features: true
 
 
 lib:
