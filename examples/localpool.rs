@@ -1,6 +1,3 @@
-#![ feature( async_await ) ]
-
-
 //! In this example we make a future that is not Send. We then spawn that future on a LocalPool executor.
 
 

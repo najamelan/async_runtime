@@ -1,9 +1,7 @@
-#![ feature( async_await, duration_constants ) ]
+#![ feature( duration_constants ) ]
 
 //! In this example we run a bunch of tasks in parallel. To verify that they run on different threads
 //! we make them all sleep for a second and measure the time passed when they finish.
-
-
 
 
 #[ cfg(not( target_arch = "wasm32" )) ]

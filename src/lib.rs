@@ -5,7 +5,6 @@
 
 
 #![ doc    ( html_root_url = "https://docs.rs/naja_async_runtime" ) ]
-#![ feature( async_await                                          ) ]
 #![ deny   ( missing_docs                                         ) ]
 #![ forbid ( unsafe_code                                          ) ]
 #![ allow  ( clippy::suspicious_else_formatting                   ) ]
