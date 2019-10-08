@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.3 - 2019-08-02
+## 0.3.1 - 2019-10-08
+
+- update dependencies
+
+## 0.3.0 - 2019-08-02
 
 - actually, `block_on` will panic on wasm (uses `thread::park` internally), so it's removed again until wasm get's threads
 
