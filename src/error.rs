@@ -28,13 +28,19 @@ pub enum ErrorKind
 	//
 	DoubleExecutorInit,
 
-	/// An backend error happened while trying to spawn:
+	/// A backend error happened while trying to spawn:
 	///
 	/// - Spawning is infallible on: _juliex_, _async-std_, _bindgen_..
 	/// - Spawning on _localpool_ can fail with [`futures::task::SpawnError`](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.18/futures/task/struct.SpawnError.html).
-	///   The only reason for this is that the executor was shut down. I haven't found a way to trigger this error.
+	///   The only reason for this is that the executor was shut down. In principle this cannot happen with
+	///   async_runtime.
 	//
 	Spawn,
+
+	/// An error happened when running an executor to completion.
+	/// This is returned by tokio_ct::run.
+	//
+	Run,
 
 	/// When some code in your project (possibly a dependency) uses [`spawn_local`](crate::spawn_local) because
 	/// the future they spawn is `!Send`, you must use the localpool for the thread in which this code is run.
@@ -67,6 +73,8 @@ impl fmt::Display for ErrorKind
 			Self::DoubleExecutorInit => fmt::Display::fmt( "DoubleExecutorInit: Cannot initialize global executor twice.", f ) ,
 
 			Self::Spawn => fmt::Display::fmt( "Spawn: Failed to spawn a future.", f ) ,
+
+			Self::Run => fmt::Display::fmt( "Run: Failed to run an executor to completion.", f ) ,
 
 			Self::SpawnLocalOnThreadPool => fmt::Display::fmt( "Spawn: You can not spawn `!Send` futures on a thread pool. If your feature is `Send`, use `rt::spawn`, otherwise initialize this thread with a Local executor.", f ) ,
 

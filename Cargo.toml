@@ -30,6 +30,12 @@ path = "macros"
 default-features = false
 version = "^0.2"
 
+[dependencies.tokio]
+default-features = false
+features = ["rt-full"]
+optional = true
+version = "^0.2.0-alpha"
+
 [dependencies.wasm-bindgen-futures]
 features = ["futures_0_3"]
 optional = true
@@ -58,6 +64,11 @@ name = "async-file"
 path = "examples/async-file.rs"
 required-features = ["notwasm", "localpool", "macros"]
 
+[[example]]
+name = "handle"
+path = "examples/handle.rs"
+required-features = ["notwasm", "localpool", "macros"]
+
 [features]
 async_std = ["async_std_crate"]
 bindgen = ["wasm-bindgen-futures"]
@@ -67,7 +78,7 @@ juliex = ["juliex_crate"]
 localpool = []
 macros = ["naja_runtime_macros"]
 notwasm = []
-external_doc = []
+tokio_ct = ["tokio"]
 
 [lib]
 name = "async_runtime"

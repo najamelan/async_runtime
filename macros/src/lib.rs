@@ -71,6 +71,45 @@ pub fn localpool( _args: TokenStream, item: TokenStream ) -> TokenStream
 
 #[ proc_macro_attribute ]
 //
+pub fn tokio_ct( _args: TokenStream, item: TokenStream ) -> TokenStream
+{
+	let input = match parse( item )
+	{
+		Ok (i) => i                                  ,
+		Err(e) => return e.to_compile_error().into() ,
+	};
+
+
+	let vis   = &input.vis        ;
+	let name  = &input.sig.ident  ;
+	let args  = &input.sig.inputs ;
+	let ret   = &input.sig.output ;
+	let body  = &input.block      ;
+	let attrs = &input.attrs      ;
+
+	let tokens = quote!
+	{
+		#( #attrs )*
+		//
+		#vis fn #name( #args ) #ret
+		{
+			async_runtime::init_allow_same( async_runtime::Config::TokioCt ).expect( "no double executor init" );
+
+			let body = async move #body ;
+
+			let handle = async_runtime::spawn_handle_local( body ).expect( "spawn from proc macro attribute" );
+			async_runtime::tokio_ct::run().expect( "LocalPool executor" );
+			async_runtime::block_on( handle )
+		}
+	};
+
+	tokens.into()
+}
+
+
+
+#[ proc_macro_attribute ]
+//
 pub fn juliex( _args: TokenStream, item: TokenStream ) -> TokenStream
 {
 	let input = match parse( item )

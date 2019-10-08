@@ -3,7 +3,9 @@ package:
   # When releasing to crates.io:
   #
   # - Update CHANGELOG.md.
-  # - Update version numbers in install section of readme.
+  # - Update version numbers in Cargo.yml, Cargo.toml, install section of readme.
+  # - verify CI result
+  # - cargo publish
   # - merge dev branch into master
   # - create git tag
   #
@@ -54,6 +56,11 @@ features:
   #
   async_std : [ async_std_crate ]
 
+  # Enables the tokio current_thread executor. Not available on WASM.
+  # This will pull network dependencies. There is no way in tokio to turn that off.
+  #
+  tokio_ct  : [ tokio ]
+
   # Enables futures::executor::LocalPool. If no other executors are enabled, this one will be enabled
   # by default. Not available on WASM. This is provided by the futures library on which we depend anyways,
   # so enabling this will not pull in extra dependencies.
@@ -78,11 +85,12 @@ features:
 
 dependencies:
 
-  futures-preview     : { version: ^0.3.0-alpha, features: [std], default-features: false }
-  once_cell           : { version: ^0.2, default-features: false }
-  juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex }
-  naja_runtime_macros : { path: macros, optional: true }
-  async_std_crate     : { version: ^0.99, optional: true, package: async-std }
+  naja_runtime_macros : { path: macros, optional: true                                                          }
+  futures-preview     : { version: ^0.3.0-alpha, features: [std], default-features: false                       }
+  once_cell           : { version: ^0.2        , default-features: false                                        }
+  juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex                                }
+  async_std_crate     : { version: ^0.99       , optional: true, package: async-std                             }
+  tokio               : { version: ^0.2.0-alpha, optional: true, default-features: false, features: [ rt-full ] }
 
   # necessary for the crate to compile for `cargo doc`
   #
@@ -120,6 +128,10 @@ example:
 
   - name             : async-file
     path             : examples/async-file.rs
+    required-features: [ notwasm, localpool, macros ]
+
+  - name             : handle
+    path             : examples/handle.rs
     required-features: [ notwasm, localpool, macros ]
 
 

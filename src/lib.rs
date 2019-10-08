@@ -36,9 +36,15 @@ mod import
 	};
 
 
-	#[ cfg(any( feature = "bindgen", feature = "localpool", feature = "juliex" )) ]
+	#[ cfg(any( feature = "bindgen", feature = "localpool", feature = "juliex", feature = "tokio_ct" )) ]
 	//
 	pub(crate) use	futures::future::FutureExt;
+
+
+	#[ cfg(any( feature = "localpool", feature = "tokio_ct" )) ]
+	//
+	pub(crate) use	std::cell::RefCell;
+
 
 
 	#[ cfg( feature = "bindgen" ) ]
@@ -53,7 +59,6 @@ mod import
 	//
 	pub(crate) use
 	{
-		std     :: { cell::RefCell                                                              } ,
 		futures :: { task::LocalSpawnExt, executor::{ LocalPool as FutLocalPool, LocalSpawner } } ,
 	};
 
@@ -63,6 +68,14 @@ mod import
 	pub(crate) use
 	{
 		once_cell :: { sync::OnceCell as SyncOnceCell } ,
+	};
+
+
+	#[ cfg( feature = "tokio_ct" ) ]
+	//
+	pub(crate) use
+	{
+		tokio :: { runtime::current_thread::Runtime as TokioCtRuntime } ,
 	};
 }
 
@@ -81,12 +94,14 @@ pub use config::*;
 
 #[ cfg( feature = "localpool" ) ] pub use executor::localpool ;
 #[ cfg( feature = "async_std" ) ] pub use executor::async_std ;
+#[ cfg( feature = "tokio_ct"  ) ] pub use executor::tokio_ct  ;
 
 
 #[ cfg(all( feature = "macros", feature = "juliex"    )) ] pub use naja_runtime_macros::juliex    ;
 #[ cfg(all( feature = "macros", feature = "async_std" )) ] pub use naja_runtime_macros::async_std ;
 #[ cfg(all( feature = "macros", feature = "localpool" )) ] pub use naja_runtime_macros::localpool ;
 #[ cfg(all( feature = "macros", feature = "bindgen"   )) ] pub use naja_runtime_macros::bindgen   ;
+#[ cfg(all( feature = "macros", feature = "tokio_ct"  )) ] pub use naja_runtime_macros::tokio_ct  ;
 
 
 use

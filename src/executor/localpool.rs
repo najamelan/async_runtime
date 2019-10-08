@@ -4,14 +4,13 @@ use crate :: { self as rt, import::*, Error, ErrorKind };
 
 
 /// An executor that uses [futures 0.3 LocalPool](https://rust-lang-nursery.github.io/futures-api-docs/0.3.0-alpha.16/futures/executor/struct.LocalPool.html) or [LocalPool](https://docs.rs/LocalPool) threadpool under the hood.
-/// Normally you don't need to construct this yourself, just use the [`rt`](crate::rt) module methods to spawn futures.
 //
 #[ derive( Debug ) ]
 //
 pub(crate) struct LocalPool
 {
-	pool   : RefCell<FutLocalPool>,
-	spawner: RefCell<LocalSpawner>,
+	pool   : RefCell< FutLocalPool >,
+	spawner: RefCell< LocalSpawner >,
 }
 
 
@@ -41,7 +40,7 @@ impl LocalPool
 
 	///
 	//
-	pub(crate) fn run_until<F: Future>( future: F ) -> <F as Future>::Output
+	pub(crate) fn run_until<F: Future>( &self, future: F ) -> <F as Future>::Output
 	{
 		self.pool.borrow_mut().run_until( future )
 	}
@@ -49,7 +48,7 @@ impl LocalPool
 
 	///
 	//
-	pub(crate) fn try_run_one() -> bool
+	pub(crate) fn try_run_one( &self ) -> bool
 	{
 		self.pool.borrow_mut().try_run_one()
 	}
@@ -57,7 +56,7 @@ impl LocalPool
 
 	///
 	//
-	pub(crate) fn run_until_stalled()
+	pub(crate) fn run_until_stalled( &self )
 	{
 		self.pool.borrow_mut().run_until_stalled()
 	}
@@ -123,7 +122,7 @@ pub fn run() -> Result< (), Error >
 
 /// Runs all the tasks in the pool until the given future completes.
 //
-pub fn run_until<F: Future>( future: F ) -> <F as Future>::Output
+pub fn run_until<F: Future>( future: F ) -> Result< <F as Future>::Output, Error >
 {
 	rt::EXEC.with( |some|
 	{
@@ -140,7 +139,7 @@ pub fn run_until<F: Future>( future: F ) -> <F as Future>::Output
 /// Runs all tasks and returns after completing one future or until no more progress can be made.
 /// Returns true if one future was completed, false otherwise.
 //
-pub fn try_run_one() -> bool
+pub fn try_run_one() -> Result< bool, Error >
 {
 	rt::EXEC.with( |some|
 	{
@@ -156,7 +155,7 @@ pub fn try_run_one() -> bool
 
 /// Runs all tasks in the pool and returns if no more progress can be made on any task.
 //
-pub fn run_until_stalled()
+pub fn run_until_stalled() -> Result< (), Error >
 {
 	rt::EXEC.with( |some|
 	{
