@@ -1,7 +1,7 @@
 use
 {
 	crate                :: { import::*, RtErr, RtConfig } ,
-	wasm_bindgen_futures :: { futures_0_3::spawn_local   } ,
+	wasm_bindgen_futures :: { spawn_local                } ,
 };
 
 

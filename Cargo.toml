@@ -9,16 +9,19 @@ repository = "najamelan/async_runtime"
 [dependencies]
 failure = "^0.1"
 log = "^0.4"
-once_cell = "^0.1"
 
 [dependencies.futures-preview]
 default-features = false
-features = ["std", "compat", "nightly"]
-version = "^0.3.0-alpha.18"
+features = ["std", "compat"]
+version = "^0.3.0-alpha"
 
 [dependencies.juliex]
 optional = true
-version = "^0.3.0-alpha.7"
+version = "^0.3.0-alpha"
+
+[dependencies.once_cell]
+default-features = false
+version = "^0.2"
 
 [dev-dependencies]
 pretty_assertions = "^0.6"
@@ -31,7 +34,7 @@ name = "async_runtime"
 
 [package]
 authors = ["Naja Melan <najamelan@autistici.org>"]
-categories = ["asynchronous"]
+categories = ["concurrency", "asynchronous"]
 description = "A lightweight universal runtime for futures."
 edition = "2018"
 keywords = ["runtime", "async", "futures"]
@@ -53,8 +56,7 @@ codegen-units = 1
 [target."cfg(target_arch = \"wasm32\")"]
 [target."cfg(target_arch = \"wasm32\")".dependencies]
 [target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
-features = ["futures_0_3"]
-version = "0.3.24"
+version = "^0.4"
 
 [target."cfg(target_arch = \"wasm32\")".dev-dependencies]
-wasm-bindgen-test = "^0.2"
+wasm-bindgen-test = "^0.3"

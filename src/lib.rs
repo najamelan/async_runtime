@@ -39,7 +39,7 @@ mod import
 {
 	pub use
 	{
-		once_cell :: { unsync::OnceCell, unsync::Lazy, unsync_lazy          } ,
+		once_cell :: { unsync::OnceCell                                     } ,
 		failure   :: { Backtrace, Fail, Context as FailContext              } ,
 		std       :: { fmt, future::Future, rc::Rc, cell::RefCell, pin::Pin } ,
 

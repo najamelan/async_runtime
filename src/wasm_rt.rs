@@ -13,7 +13,7 @@ pub use wasm_exec::*;
 
 thread_local!
 (
-	static EXEC: OnceCell< WasmExec > = OnceCell::INIT;
+	static EXEC: OnceCell< WasmExec > = OnceCell::new();
 );
 
 

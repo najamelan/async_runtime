@@ -14,7 +14,7 @@ use crate :: { import::*, RtConfig, RtErr, RtErrKind };
 
 thread_local!
 (
-	static EXEC: OnceCell< Exec03 > = OnceCell::INIT;
+	static EXEC: OnceCell< Exec03 > = OnceCell::new();
 );
 
 
