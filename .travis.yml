@@ -21,6 +21,7 @@
     only:
       - master
       - dev
+      - 0.4
 
   matrix:
 
