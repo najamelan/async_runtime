@@ -40,9 +40,9 @@ matrix:
 
 
       script:
-        - cargo test
-        - cargo test --release
-        - cargo doc --no-deps
+        - cargo test --all-features
+        - cargo test --all-features --release
+        - cargo doc  --all-features --no-deps
 
         - wasm-pack test  --firefox --headless
         - wasm-pack test  --chrome  --headless
