@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 - 2019-10-08
+
+- fix docs.rs
+
 ## 0.3.1 - 2019-10-08
 
 - update dependencies
