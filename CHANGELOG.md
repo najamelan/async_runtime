@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3 - 2019-10-10
+
+- another try at fixing docs.rs
+
 ## 0.3.2 - 2019-10-08
 
 - fix docs.rs

@@ -101,10 +101,10 @@ Other dependencies:
 
 ```yaml
 failure         : ^0.1
-futures-preview : { version: ^0.3.0-alpha.16, features: [ std, compat, nightly ], default-features: false }
+futures-preview : { version: ^0.3.0-alpha, features: [ std, compat ], default-features: false }
 log             : ^0.4
-once_cell       : ^0.1
-juliex          : { version: 0.3.0-alpha.6, optional: true }
+once_cell       : { version: ^0.2, default-features: false }
+juliex          : { version: ^0.3.0-alpha, optional: true }
 ```
 
 ## Usage
@@ -112,8 +112,6 @@ juliex          : { version: 0.3.0-alpha.6, optional: true }
 Please have a look in the [examples directory of the repository](https://github.com/najamelan/async_runtime/tree/master/examples).
 
 ```rust
-#![ feature( async_await ) ]
-
 use
 {
 	async_runtime :: { * } ,
