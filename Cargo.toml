@@ -10,7 +10,7 @@ repository = "najamelan/async_runtime"
 [dependencies.async_std_crate]
 optional = true
 package = "async-std"
-version = "=0.99.8"
+version = "^0.99"
 
 [dependencies.futures-preview]
 default-features = false
