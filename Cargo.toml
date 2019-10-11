@@ -43,12 +43,12 @@ license = "Unlicense"
 name = "naja_async_runtime"
 readme = "README.md"
 repository = "https://github.com/najamelan/async_runtime"
-version = "0.3.3"
+version = "0.3.4"
 
 [package.metadata]
 [package.metadata.docs]
 [package.metadata.docs.rs]
-all-features = true
+features = ["external_doc", "juliex"]
 
 [profile]
 [profile.release]
