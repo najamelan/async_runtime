@@ -13,3 +13,4 @@ Cargo.lock
 
 /examples/wasm/pkg/
 /examples/wasm/target/
+/tests/attributes/target/
