@@ -27,8 +27,7 @@ optional = true
 path = "macros"
 
 [dependencies.once_cell]
-default-features = false
-version = "^0.2"
+version = "^1"
 
 [dependencies.tokio]
 default-features = false
