@@ -5,7 +5,7 @@ use crate :: { import::*, Error };
 // We only really have an interface to the spawn_local method. There are not threads on WASM, we cannot
 // block the current thread. These futures are just passed to Javascript to be converted into promises.
 //
-#[ derive( Debug ) ]
+#[ derive( Debug, Clone ) ]
 //
 pub(crate) struct Bindgen {}
 

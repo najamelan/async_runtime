@@ -6,7 +6,7 @@ use crate :: { self as rt, import::*, Error, ErrorKind };
 
 // Async-std does not currently expose a handle to control the threadpool, so it's zero sized and zero control.
 //
-#[ derive( Debug, Default ) ]
+#[ derive( Debug, Default, Clone ) ]
 //
 pub(crate) struct AsyncStd {}
 

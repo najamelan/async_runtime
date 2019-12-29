@@ -6,7 +6,7 @@ use crate :: { self as rt, import::*, Error, ErrorKind };
 /// executor that allows full control. We could expose an interface that allows users to control
 /// the lifetime and scope of a juliex threadpool.
 //
-#[ derive( Debug, Default ) ]
+#[ derive( Debug, Default, Clone ) ]
 //
 pub(crate) struct Juliex {}
 
