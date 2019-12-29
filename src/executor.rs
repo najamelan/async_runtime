@@ -6,18 +6,20 @@ use
 
 
 
-#[ cfg( feature = "localpool" ) ] pub mod localpool ;
-#[ cfg( feature = "async_std" ) ] pub mod async_std ;
-#[ cfg( feature = "tokio_ct"  ) ] pub mod tokio_ct  ;
-#[ cfg( feature = "bindgen"   ) ]     mod bindgen   ;
-#[ cfg( feature = "juliex"    ) ]     mod juliex    ;
+#[ cfg( feature = "localpool"  ) ] pub mod localpool  ;
+#[ cfg( feature = "async_std"  ) ] pub mod async_std  ;
+#[ cfg( feature = "tokio_ct"   ) ] pub mod tokio_ct   ;
+#[ cfg( feature = "bindgen"    ) ]     mod bindgen    ;
+#[ cfg( feature = "juliex"     ) ]     mod juliex     ;
+#[ cfg( feature = "threadpool" ) ]     mod threadpool ;
 
 
-#[ cfg( feature = "async_std" ) ] use async_std :: AsyncStd  ;
-#[ cfg( feature = "bindgen"   ) ] use bindgen   :: Bindgen   ;
-#[ cfg( feature = "juliex"    ) ] use juliex    :: Juliex    ;
-#[ cfg( feature = "localpool" ) ] use localpool :: LocalPool ;
-#[ cfg( feature = "tokio_ct"  ) ] use tokio_ct  :: TokioCt   ;
+#[ cfg( feature = "async_std"  ) ] use async_std  :: AsyncStd   ;
+#[ cfg( feature = "bindgen"    ) ] use bindgen    :: Bindgen    ;
+#[ cfg( feature = "juliex"     ) ] use juliex     :: Juliex     ;
+#[ cfg( feature = "threadpool" ) ] use threadpool :: ThreadPool ;
+#[ cfg( feature = "localpool"  ) ] use localpool  :: LocalPool  ;
+#[ cfg( feature = "tokio_ct"   ) ] use tokio_ct   :: TokioCt    ;
 
 
 /// The different executors we support.
@@ -31,6 +33,10 @@ pub(crate) enum Executor
 	#[ cfg( feature = "juliex" ) ]
 	//
 	Juliex( Juliex ),
+
+	#[ cfg( feature = "threadpool" ) ]
+	//
+	ThreadPool( ThreadPool ),
 
 	#[ cfg( feature = "async_std" ) ]
 	//
@@ -69,11 +75,12 @@ impl Executor
 	{
 		match config
 		{
-			#[ cfg( feature = "localpool" ) ] Config::LocalPool => Self::LocalPool( LocalPool::new() ),
-			#[ cfg( feature = "async_std" ) ] Config::AsyncStd  => Self::AsyncStd ( AsyncStd ::new() ),
-			#[ cfg( feature = "juliex"    ) ] Config::Juliex    => Self::Juliex   ( Juliex   ::new() ),
-			#[ cfg( feature = "bindgen"   ) ] Config::Bindgen   => Self::Bindgen  ( Bindgen  ::new() ),
-			#[ cfg( feature = "tokio_ct"  ) ] Config::TokioCt   => Self::TokioCt  ( TokioCt  ::new() ),
+			#[ cfg( feature = "localpool"  ) ] Config::LocalPool  => Self::LocalPool ( LocalPool  ::new() ),
+			#[ cfg( feature = "async_std"  ) ] Config::AsyncStd   => Self::AsyncStd  ( AsyncStd   ::new() ),
+			#[ cfg( feature = "juliex"     ) ] Config::Juliex     => Self::Juliex    ( Juliex     ::new() ),
+			#[ cfg( feature = "threadpool" ) ] Config::ThreadPool => Self::ThreadPool( ThreadPool ::new() ),
+			#[ cfg( feature = "bindgen"    ) ] Config::Bindgen    => Self::Bindgen   ( Bindgen    ::new() ),
+			#[ cfg( feature = "tokio_ct"   ) ] Config::TokioCt    => Self::TokioCt   ( TokioCt    ::new() ),
 
 			_ => unreachable!(),
 		}
@@ -83,11 +90,12 @@ impl Executor
 	{
 		match self
 		{
-			#[ cfg( feature = "localpool" ) ] Self::LocalPool(_) => Config::LocalPool ,
-			#[ cfg( feature = "juliex"    ) ] Self::Juliex   (_) => Config::Juliex    ,
-			#[ cfg( feature = "async_std" ) ] Self::AsyncStd (_) => Config::AsyncStd  ,
-			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen  (_) => Config::Bindgen   ,
-			#[ cfg( feature = "tokio_ct"  ) ] Self::TokioCt  (_) => Config::TokioCt   ,
+			#[ cfg( feature = "localpool"  ) ] Self::LocalPool (_) => Config::LocalPool  ,
+			#[ cfg( feature = "juliex"     ) ] Self::Juliex    (_) => Config::Juliex     ,
+			#[ cfg( feature = "threadpool" ) ] Self::ThreadPool(_) => Config::ThreadPool ,
+			#[ cfg( feature = "async_std"  ) ] Self::AsyncStd  (_) => Config::AsyncStd   ,
+			#[ cfg( feature = "bindgen"    ) ] Self::Bindgen   (_) => Config::Bindgen    ,
+			#[ cfg( feature = "tokio_ct"   ) ] Self::TokioCt   (_) => Config::TokioCt    ,
 
 			_ => unreachable!(),
 		}
@@ -102,11 +110,12 @@ impl Executor
 	{
 		match self
 		{
-			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.spawn( fut ),
-			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (e) => e.spawn( fut ),
-			#[ cfg( feature = "async_std" ) ] Self::AsyncStd  (e) => e.spawn( fut ),
-			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (e) => e.spawn( fut ),
-			#[ cfg( feature = "tokio_ct"  ) ] Self::TokioCt   (e) => e.spawn( fut ),
+			#[ cfg( feature = "localpool"  ) ] Self::LocalPool  (e) => e.spawn( fut ),
+			#[ cfg( feature = "juliex"     ) ] Self::Juliex     (e) => e.spawn( fut ),
+			#[ cfg( feature = "threadpool" ) ] Self::ThreadPool (e) => e.spawn( fut ),
+			#[ cfg( feature = "async_std"  ) ] Self::AsyncStd   (e) => e.spawn( fut ),
+			#[ cfg( feature = "bindgen"    ) ] Self::Bindgen    (e) => e.spawn( fut ),
+			#[ cfg( feature = "tokio_ct"   ) ] Self::TokioCt    (e) => e.spawn( fut ),
 
 			_ => unreachable!(),
 		}
@@ -121,11 +130,12 @@ impl Executor
 	{
 		match self
 		{
-			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.spawn_local( fut ),
-			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (e) => e.spawn_local( fut ),
-			#[ cfg( feature = "async_std" ) ] Self::AsyncStd  (e) => e.spawn_local( fut ),
-			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (e) => e.spawn_local( fut ),
-			#[ cfg( feature = "tokio_ct"  ) ] Self::TokioCt   (e) => e.spawn_local( fut ),
+			#[ cfg( feature = "localpool"  ) ] Self::LocalPool  (e) => e.spawn_local( fut ),
+			#[ cfg( feature = "juliex"     ) ] Self::Juliex     (e) => e.spawn_local( fut ),
+			#[ cfg( feature = "threadpool" ) ] Self::ThreadPool (e) => e.spawn_local( fut ),
+			#[ cfg( feature = "async_std"  ) ] Self::AsyncStd   (e) => e.spawn_local( fut ),
+			#[ cfg( feature = "bindgen"    ) ] Self::Bindgen    (e) => e.spawn_local( fut ),
+			#[ cfg( feature = "tokio_ct"   ) ] Self::TokioCt    (e) => e.spawn_local( fut ),
 
 			_ => unreachable!(),
 		}
@@ -147,11 +157,12 @@ impl Executor
 	{
 		match self
 		{
-			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.spawn_handle( fut ),
-			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (e) => e.spawn_handle( fut ),
-			#[ cfg( feature = "async_std" ) ] Self::AsyncStd  (e) => e.spawn_handle( fut ),
-			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (e) => e.spawn_handle( fut ),
-			#[ cfg( feature = "tokio_ct"  ) ] Self::TokioCt   (e) => e.spawn_handle( fut ),
+			#[ cfg( feature = "localpool"  ) ] Self::LocalPool (e) => e.spawn_handle( fut ),
+			#[ cfg( feature = "juliex"     ) ] Self::Juliex    (e) => e.spawn_handle( fut ),
+			#[ cfg( feature = "threadpool" ) ] Self::ThreadPool(e) => e.spawn_handle( fut ),
+			#[ cfg( feature = "async_std"  ) ] Self::AsyncStd  (e) => e.spawn_handle( fut ),
+			#[ cfg( feature = "bindgen"    ) ] Self::Bindgen   (e) => e.spawn_handle( fut ),
+			#[ cfg( feature = "tokio_ct"   ) ] Self::TokioCt   (e) => e.spawn_handle( fut ),
 
 			_ => unreachable!(),
 		}
@@ -172,11 +183,12 @@ impl Executor
 	{
 		match self
 		{
-			#[ cfg( feature = "localpool" ) ] Self::LocalPool (e) => e.spawn_handle_local( fut ),
-			#[ cfg( feature = "juliex"    ) ] Self::Juliex    (e) => e.spawn_handle_local( fut ),
-			#[ cfg( feature = "async_std" ) ] Self::AsyncStd  (e) => e.spawn_handle_local( fut ),
-			#[ cfg( feature = "bindgen"   ) ] Self::Bindgen   (e) => e.spawn_handle_local( fut ),
-			#[ cfg( feature = "tokio_ct"  ) ] Self::TokioCt   (e) => e.spawn_handle_local( fut ),
+			#[ cfg( feature = "localpool"  ) ] Self::LocalPool (e) => e.spawn_handle_local( fut ),
+			#[ cfg( feature = "juliex"     ) ] Self::Juliex    (e) => e.spawn_handle_local( fut ),
+			#[ cfg( feature = "threadpool" ) ] Self::ThreadPool(e) => e.spawn_handle_local( fut ),
+			#[ cfg( feature = "async_std"  ) ] Self::AsyncStd  (e) => e.spawn_handle_local( fut ),
+			#[ cfg( feature = "bindgen"    ) ] Self::Bindgen   (e) => e.spawn_handle_local( fut ),
+			#[ cfg( feature = "tokio_ct"   ) ] Self::TokioCt   (e) => e.spawn_handle_local( fut ),
 
 			_ => unreachable!(),
 		}

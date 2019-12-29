@@ -14,7 +14,7 @@ version = "^0.99"
 
 [dependencies.futures]
 default-features = false
-features = ["std", "thread-pool"]
+features = ["std", "executor"]
 version = "^0.3"
 
 [dependencies.juliex_crate]
@@ -59,6 +59,11 @@ path = "examples/juliex.rs"
 required-features = ["notwasm", "juliex", "macros"]
 
 [[example]]
+name = "threadpool"
+path = "examples/threadpool.rs"
+required-features = ["notwasm", "threadpool", "macros"]
+
+[[example]]
 name = "async-file"
 path = "examples/async-file.rs"
 required-features = ["notwasm", "localpool", "macros"]
@@ -77,6 +82,7 @@ juliex = ["juliex_crate"]
 localpool = []
 macros = ["naja_runtime_macros"]
 notwasm = []
+threadpool = ["futures/thread-pool"]
 tokio_ct = ["tokio"]
 
 [lib]

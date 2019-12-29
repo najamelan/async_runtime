@@ -36,7 +36,7 @@ mod import
 	};
 
 
-	#[ cfg(any( feature = "bindgen", feature = "localpool", feature = "juliex", feature = "tokio_ct" )) ]
+	#[ cfg(any( feature = "bindgen", feature = "localpool", feature = "juliex", feature = "threadpool", feature = "tokio_ct" )) ]
 	//
 	pub(crate) use	futures::future::FutureExt;
 
@@ -63,7 +63,15 @@ mod import
 	};
 
 
-	#[ cfg( feature = "juliex" ) ]
+	#[ cfg( feature = "threadpool" ) ]
+	//
+	pub(crate) use
+	{
+		futures :: { task::SpawnExt, executor::{ ThreadPool as FutThreadPool } } ,
+	};
+
+
+	#[ cfg(any( feature = "juliex", feature = "threadpool" )) ]
 	//
 	pub(crate) use
 	{
@@ -97,11 +105,12 @@ pub use config::*;
 #[ cfg( feature = "tokio_ct"  ) ] pub use executor::tokio_ct  ;
 
 
-#[ cfg(all( feature = "macros", feature = "juliex"    )) ] pub use naja_runtime_macros::juliex    ;
-#[ cfg(all( feature = "macros", feature = "async_std" )) ] pub use naja_runtime_macros::async_std ;
-#[ cfg(all( feature = "macros", feature = "localpool" )) ] pub use naja_runtime_macros::localpool ;
-#[ cfg(all( feature = "macros", feature = "bindgen"   )) ] pub use naja_runtime_macros::bindgen   ;
-#[ cfg(all( feature = "macros", feature = "tokio_ct"  )) ] pub use naja_runtime_macros::tokio_ct  ;
+#[ cfg(all( feature = "macros", feature = "juliex"     )) ] pub use naja_runtime_macros::juliex     ;
+#[ cfg(all( feature = "macros", feature = "threadpool" )) ] pub use naja_runtime_macros::threadpool ;
+#[ cfg(all( feature = "macros", feature = "async_std"  )) ] pub use naja_runtime_macros::async_std  ;
+#[ cfg(all( feature = "macros", feature = "localpool"  )) ] pub use naja_runtime_macros::localpool  ;
+#[ cfg(all( feature = "macros", feature = "bindgen"    )) ] pub use naja_runtime_macros::bindgen    ;
+#[ cfg(all( feature = "macros", feature = "tokio_ct"   )) ] pub use naja_runtime_macros::tokio_ct   ;
 
 
 use

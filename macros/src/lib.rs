@@ -145,6 +145,41 @@ pub fn juliex( _args: TokenStream, item: TokenStream ) -> TokenStream
 
 #[ proc_macro_attribute ]
 //
+pub fn threadpool( _args: TokenStream, item: TokenStream ) -> TokenStream
+{
+	let input = match parse( item )
+	{
+		Ok (i) => i                                  ,
+		Err(e) => return e.to_compile_error().into() ,
+	};
+
+
+	let vis   = &input.vis        ;
+	let name  = &input.sig.ident  ;
+	let args  = &input.sig.inputs ;
+	let ret   = &input.sig.output ;
+	let body  = &input.block      ;
+	let attrs = &input.attrs      ;
+
+	let tokens = quote!
+	{
+		#(#attrs)*
+		//
+		#vis fn #name( #args ) #ret
+		{
+			async_runtime::init_allow_same( async_runtime::Config::ThreadPool ).expect( "no double executor init" );
+
+			async_runtime::block_on( async move #body )
+		}
+	};
+
+	tokens.into()
+}
+
+
+
+#[ proc_macro_attribute ]
+//
 pub fn async_std( _args: TokenStream, item: TokenStream ) -> TokenStream
 {
 	let input = match parse( item )

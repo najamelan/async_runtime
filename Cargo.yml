@@ -67,6 +67,12 @@ features:
   #
   localpool : []
 
+  # Enables futures::executor::LocalPool. If no other executors are enabled, this one will be enabled
+  # by default. Not available on WASM. This is provided by the futures library on which we depend anyways,
+  # so enabling this will not pull in extra dependencies.
+  #
+  threadpool : [ futures/thread-pool ]
+
   # Enables the wasm-bindgen-futures executor. Only available on WASM. If no other executors are enabled
   # this will be enabled by default. Currently the only executor available on WASM, so it makes no sense
   # for it not to be enabled, and it's providing dependency wasm-bindgen-futures will always be compiled
@@ -86,7 +92,7 @@ features:
 dependencies:
 
   naja_runtime_macros : { path: macros, optional: true                                                          }
-  futures             : { version: ^0.3        , features: [std, thread-pool], default-features: false          }
+  futures             : { version: ^0.3        , features: [std, executor], default-features: false             }
   once_cell           : { version: ^0.2        , default-features: false                                        }
   juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex                                }
   async_std_crate     : { version: ^0.99       , optional: true, package: async-std                             }
@@ -125,6 +131,10 @@ example:
   - name             : juliex
     path             : examples/juliex.rs
     required-features: [ notwasm, juliex, macros ]
+
+  - name             : threadpool
+    path             : examples/threadpool.rs
+    required-features: [ notwasm, threadpool, macros ]
 
   - name             : async-file
     path             : examples/async-file.rs

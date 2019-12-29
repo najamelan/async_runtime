@@ -4,6 +4,12 @@
 //
 pub enum Config
 {
+	/// A threadpool executor from the futures crate.
+	//
+	#[ cfg( feature = "threadpool" ) ]
+	//
+	ThreadPool,
+
 	/// A threadpool executor from the juliex crate.
 	//
 	#[ cfg( feature = "juliex" ) ]

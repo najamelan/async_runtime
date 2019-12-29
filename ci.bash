@@ -13,15 +13,18 @@ export RUSTFLAGS="-D warnings"
 cargo test
 cargo test --features localpool
 cargo test --features juliex
+cargo test --features threadpool
 cargo test --features async_std
 cargo test --features macros
 cargo test --features "macros async_std juliex"
 cargo test --features "macros async_std localpool"
 cargo test --features "macros async_std juliex localpool"
 cargo test --features "macros juliex localpool"
+cargo test --features "macros threadpool localpool"
 
 cargo run --example localpool  --features "macros localpool"
 cargo run --example juliex     --features "macros juliex"
+cargo run --example threadpool --features "macros threadpool"
 cargo run --example async-file --features "macros localpool"
 cargo run --example attribute  --features "macros localpool"
 
