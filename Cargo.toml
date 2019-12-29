@@ -10,7 +10,7 @@ repository = "najamelan/async_runtime"
 [dependencies.async_std_crate]
 optional = true
 package = "async-std"
-version = "^0.99"
+version = "^1"
 
 [dependencies.futures]
 default-features = false
@@ -115,7 +115,7 @@ codegen-units = 1
 [target."cfg(not( target_arch = \"wasm32\" ))".dev-dependencies]
 [target."cfg(not( target_arch = \"wasm32\" ))".dev-dependencies.async_std_crate]
 package = "async-std"
-version = "^0.99"
+version = "^1"
 
 [target."cfg(target_arch = \"wasm32\")"]
 [target."cfg(target_arch = \"wasm32\")".dependencies]
