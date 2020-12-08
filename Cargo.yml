@@ -2,14 +2,29 @@ package:
 
   # When releasing to crates.io:
   #
+  # - last check for all TODO, FIXME, expect, unwrap.
+  # - recheck log statements (informative, none left that were just for development, ...)
+  # - `cargo +nightly doc` and re-read and final polish of documentation.
+  #
   # - Update CHANGELOG.md.
   # - Update version numbers in Cargo.yml, Cargo.toml, install section of readme.
-  # - verify CI result
-  # - cargo publish
-  # - merge dev branch into master
-  # - create git tag
   #
-  version      : 0.4.0
+  # - `touch **.rs && cargo clippy --tests --examples --benches --all-features`
+  # - `cargo update`
+  # - `cargo udeps --all-targets --all-features`
+  # - `cargo audit`
+  # - `cargo crev crate verify --show-all --recursive` and review.
+  # - 'cargo test --all-targets --all-features'
+  #
+  # - push dev and verify CI result
+  # - `cargo test` on dependent crates
+  #
+  # - cargo publish
+  # - `git checkout master && git merge dev --no-ff`
+  # - `git tag x.x.x` with version number.
+  # - `git push && git push --tags`
+  #
+  version      : 0.5.0-deprecated.1
   name         : naja_async_runtime
   authors      : [ Naja Melan <najamelan@autistici.org> ]
   edition      : '2018'
@@ -25,6 +40,7 @@ package:
     docs:
       rs:
         features: [ external_doc, juliex ]
+        targets : []
 
 
 lib:
@@ -35,7 +51,7 @@ lib:
 badges:
 
   travis-ci   : { repository: najamelan/async_runtime }
-  maintenance : { status    : actively-developed      }
+  maintenance : { status    : deprecated              }
 
 
 # Please see the readme for details.
@@ -46,7 +62,7 @@ features:
   # wasm.
   #
   default   : [ notwasm ]
-  macros    : [ naja_runtime_macros ]
+  # macros    : [ naja_runtime_macros ]
 
   # Enables the juliex threadpool executor. Not available on WASM.
   #
@@ -91,7 +107,7 @@ features:
 
 dependencies:
 
-  naja_runtime_macros : { path: macros, optional: true                                                          }
+  # naja_runtime_macros : { version: path: macros, optional: true                                                 }
   futures             : { version: ^0.3        , features: [std, executor], default-features: false             }
   once_cell           : { version: ^1                                                                           }
   juliex_crate        : { version: ^0.3.0-alpha, optional: true, package: juliex                                }

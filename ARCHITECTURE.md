@@ -121,3 +121,18 @@ It could be argued that the best way available in rust to express objects with v
 4. The potential advantage here is that we could know who supports what in a general way. Eg. there could be seveal traits. Something that
 
 Currently we rather use an enum. Since the list of executors we support is limited, this works pretty well. Supporting new executors means this library needs to be updated.
+
+
+## Combined execution model: global spawn and take generic executor.
+
+After discussion [here](https://users.rust-lang.org/t/poll-async-await-lets-talk-about-executors/31753), I figured a good general purpose execution runtime should support passing generic executors as well as a global spawn function. A third execution model is a nursery much like the python trio library.
+
+Currently async_runtime is designed around being able to set a default executor on a thread basis. When passing an executor in as a generic argument, different needs exist:
+
+- When instantiating a new executor, one would expect for this one to be completely independant of other executors running in the process or thread.
+- It seems desirable to be able to chose for a global spawn function in your application, yet pass that executor to a library that requires a generic executor.
+- pass by reference? Need to be able to give out owned values? Allow all functionality on shared references or provide cheap clone?
+
+We need an abstraction around each existing executor (futures-rs, tokio, juliex, async-std, ...) that works for both execution models. We want to implement at least futures::task::Spawn and/or LocalSpawn for them and possibly the tokio Executor and TypedExecutor traits.
+
+We need to be able to set them as default for anything spawned on this thread, which means also initializing worker threads. We need to be able to pass them to libraries that need a generic executor and we want them to be able to back up a nursery.

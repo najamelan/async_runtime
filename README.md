@@ -8,6 +8,8 @@
 
 > A lightweight runtime for global spawning of futures.
 
+**DEPRECATED**: This crate has not been updated in a long time. It would need a rewrite, but it turns out most people are [more interested an a parameter based approach rather than a global executor approach](https://users.rust-lang.org/t/poll-async-await-lets-talk-about-executors). I have in the mean time released [async_executors](https://crates.io/crates/async_executors) and [async_nursery](https://crates.io/crates/async_nursery) wich allow libraries to take an agnostik executor without setting a global one. There is another crate called [agnostik](https://crates.io/crates/agnostik) which does more or less the same thing. I have come to firmly believe that this is better design and there has been no demand for a global executor solution since. Thus I won't update this crate unless there is some serious demand.
+
 The purpose of `async_runtime` is to make it convenient to spawn and run futures.
 It allows library authors to call [`rt::spawn( future );`](spawn) rather than having to take a `T: Executor`,
 yet let client code decide what kind of executor is used. It avoids pulling in the entire network stack/reactor of

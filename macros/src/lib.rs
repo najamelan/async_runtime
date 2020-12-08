@@ -17,15 +17,11 @@
 )]
 
 
-
-extern crate proc_macro;
-
-
 use
 {
-	proc_macro :: { TokenStream } ,
-	quote      :: { quote       } ,
-	syn        :: { ItemFn      } ,
+	proc_macro :: { TokenStream        } ,
+	quote      :: { quote              } ,
+	syn        :: { ItemFn, ReturnType } ,
 };
 
 
@@ -41,27 +37,25 @@ pub fn localpool( _args: TokenStream, item: TokenStream ) -> TokenStream
 	};
 
 
-	let vis   = &input.vis        ;
 	let name  = &input.sig.ident  ;
 	let args  = &input.sig.inputs ;
-	let ret   = &input.sig.output ;
 	let body  = &input.block      ;
 	let attrs = &input.attrs      ;
+
+	let ret = match &input.sig.output
+	{
+		ReturnType::Default      => quote!( ()   ),
+		ReturnType::Type(_, ret) => quote!( #ret ),
+	};
 
 	let tokens = quote!
 	{
 		#( #attrs )*
 		//
-		#vis fn #name( #args ) #ret
-		{
-			async_runtime::init_allow_same( async_runtime::Config::LocalPool ).expect( "no double executor init" );
-
-			let body = async move #body ;
-
-			let handle = async_runtime::spawn_handle_local( body ).expect( "spawn from proc macro attribute" );
-			async_runtime::localpool::run().expect( "LocalPool executor" );
-			async_runtime::block_on( handle )
-		}
+		fn #name( #args ) -> thespis::Return< '_, #ret > { ::core::pin::Pin::new( std::box::Box::new
+		(
+			async move #body
+		))}
 	};
 
 	tokens.into()
